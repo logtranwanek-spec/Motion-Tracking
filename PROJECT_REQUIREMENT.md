@@ -73,6 +73,8 @@ Các bất biến bắt buộc:
 
 Ngoại lệ phải thể hiện rõ: file hỏng/codec không hỗ trợ; thiếu dung lượng; processing lỗi hoặc server khởi động lại; PTS thiếu/trùng/không đáng tin cậy; video che khuất thao tác hoặc cắt giữa cycle; annotation ngoài cycle; End không lớn hơn Start; overlap chưa có quy tắc; không có cycle hợp lệ; mất quyền hoặc sửa đồng thời. Không âm thầm sửa dữ liệu hay tự coi các trường hợp này là đạt nghiệm thu.
 
+Luồng POC cụ thể, khôi phục Start/End và xử lý ảnh chưa xác minh được ghi trong [kiến trúc](ARCHITECTURE.md). Chủ dự án đã duyệt Gate 1 cho phạm vi POC; D-02/D-05 chưa chốt. POC lưu mốc bằng manifest local, không yêu cầu SQLite hoặc SharePoint; OpenAPI chi tiết chỉ ở local.
+
 ## 5. Phạm vi theo phase và gate
 
 | Phase | Trong phạm vi | Điều kiện chuyển tiếp |
@@ -85,11 +87,11 @@ Ngoại lệ phải thể hiện rõ: file hỏng/codec không hỗ trợ; thi�
 
 Phase 2–4 là lộ trình đề xuất; thứ tự có thể đổi khi được giao riêng. SharePoint feasibility ở Phase 0 và tích hợp có thể được giao sớm hơn nếu IT chấp thuận; không phải điều kiện bắt buộc để Manual MVP local-only hoạt động.
 
-Ngoài phạm vi lần giao việc này: viết code POC/MVP, tạo app/CI/schema thật, benchmark video, triển khai LAN, xác minh quyền IT, AI/SOP hay tích hợp. Lần này chỉ tạo, rà soát và bàn giao 5 file Markdown.
+Phạm vi gói hiện được giao là lập trình và kiểm chứng kỹ thuật POC tại workspace local; SQLite nghiệp vụ, SharePoint, Excel, AI và triển khai MVP/pilot để sau. GitHub chỉ dùng cho 5 file Markdown root; xem trạng thái thực tế trong [PROGRESS.md](PROGRESS.md).
 
 ## 6. Tiêu chí nghiệm thu
 
-### Gói lập trình đầu tiên — chưa được thực hiện
+### Gói lập trình đầu tiên — đang thực hiện, chưa nghiệm thu
 
 | Mã | Tiêu chí |
 | --- | --- |

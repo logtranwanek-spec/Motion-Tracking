@@ -116,9 +116,9 @@ Không suy ra Standard Time từ cycle nhanh nhất. P0-07/P1-06 chỉ triển k
 
 ## 6. API và giao tiếp
 
-Ranh giới dự kiến: upload/media, video metadata/frame index/exact-frame, job status, master/templates, studies/revisions, cycles/annotations, analytics, report export, auth/review. Browser nhận asset qua API hoặc media route được kiểm soát, có HTTP range khi phát proxy. Các tác vụ dài trả job ID để poll trạng thái.
+Ranh giới dự kiến: upload/media, video metadata/frame index/exact-frame, job status, master/templates, studies/revisions, cycles/annotations, analytics, report export, auth/review. Browser nhận asset qua API hoặc media route được kiểm soát, có HTTP range khi phát proxy. MVP dự kiến dùng job ID để poll; draft POC dùng video ID để poll trạng thái xử lý.
 
-Đây chưa phải OpenAPI contract đã chốt. P0-02 còn phải tạo contract request/response/error, kiểu timestamp nguyên, frame/boundary refs, pagination, concurrency token và job lifecycle; không viện dẫn file contract chưa tồn tại như tài liệu đã duyệt. POC đầu chỉ làm những route cần mở video, lấy frame và đo Start/End. MVP bổ sung business API và permission checks.
+Luồng và contract POC được tóm tắt trong phần 9 bên dưới; chủ dự án đã duyệt Gate 1. File OpenAPI chi tiết chỉ lưu local theo quy tắc repo. Contract POC chưa bao gồm pagination, concurrency token và business API MVP; các phần đó cần thiết kế riêng khi được giao. Trạng thái triển khai và kiểm thử thực tế ở [PROGRESS.md](PROGRESS.md).
 
 ## 7. SharePoint khi được IT phê duyệt
 
@@ -142,4 +142,97 @@ Server LAN chạy frontend/API và worker dưới service phù hợp. Windows/Li
 
 Backup bằng [SQLite backup API](https://sqlite.org/backup.html), kèm file assets/manifest tương ứng và restore thử. Không chỉ copy file `.db` đang hoạt động trong WAL rồi coi là backup đủ. Thiết kế checkpoint/snapshot phối hợp metadata và file để restore không mất liên kết. Bản backup có thể chuyển đến kho được IT duyệt sau khi tạo snapshot an toàn; live DB vẫn local.
 
-Kiểm thử dự kiến: pytest cho domain/API, integration cho DB/worker/backup và Playwright cho player/E2E khi có ứng dụng; benchmark video và UAT thực tế. Hiện tại mới có tài liệu, chưa chạy các kiểm thử ứng dụng này.
+Kiểm thử dự kiến: pytest cho domain/API, integration cho DB/worker/backup và Playwright cho player/E2E; benchmark video và UAT thực tế. Kết quả đã chạy và giới hạn được ghi trong [PROGRESS.md](PROGRESS.md).
+
+## 9. Luồng và contract Gate 1 cho POC
+
+Chủ dự án xác nhận duyệt Gate 1; D-02 và D-05 vẫn mở. Các tiêu chí bên dưới là kế hoạch kiểm chứng, không khẳng định POC đã hoàn tất. OpenAPI, code và test được giữ tại workspace local.
+
+### Luồng và ngoại lệ
+
+1. IE chọn MP4/MOV; server nhận file qua LAN vào vùng tạm local, kiểm tra container/codec và checksum, lưu original bất biến. Trả `video_id`; UI theo dõi `QUEUED`, `RUNNING`, `READY` hoặc `FAILED` qua API. Khi `FAILED`, hiện lỗi và cho chọn lại file; không cho đánh dấu.
+2. Worker probe, lập index presentation order, tạo proxy H.264 MP4 đã xoay và mapping. Khi `READY`, UI phát/tua proxy. Sau tua hoặc tạm dừng, client yêu cầu ánh xạ vị trí proxy tới source frame; nếu ánh xạ không duy nhất hoặc không hợp lệ, hiện trạng thái chưa xác minh, yêu cầu chọn frame theo ordinal hoặc xử lý lại.
+3. API trả frame gốc, raw PTS, thời gian chuẩn hóa, `frame_token` và URL ảnh exact-frame. Client tải ảnh, kiểm tra token trong response, đợi ảnh decode/render và xác nhận đây vẫn là request mới nhất trước khi bật Start/End. Sau lần seek/step mới, đổi video hoặc lỗi tải ảnh, vô hiệu xác nhận cũ. Server chỉ xác thực token tương ứng frame; server không thể tự chứng minh người dùng đã thấy ảnh.
+4. Tiến/lùi bằng ordinal source hiện tại ±1, không bước theo proxy frame. Ở đầu/cuối: vô hiệu nút tương ứng và giữ nguyên frame. Nếu không định danh đúng ảnh hoặc response đến trễ, bỏ response cũ, báo chưa xác minh và khóa đánh dấu.
+5. Tạo measurement tạm, đặt Start hoặc End theo token của frame đã hiển thị; có thể đặt End trước. Khi cả hai mốc đã có, server chỉ chấp nhận `start_us < end_us`; mốc bằng nhau hoặc đảo trả `422 INVALID_INTERVAL`, giữ nguyên mốc cũ. Thời lượng bằng `end_us - start_us`.
+6. Tải lại measurement đã lưu; chọn quay lại Start/End bằng ordinal đã lưu, đối chiếu checksum, index version, raw PTS và normalized PTS. API tạo token mới và UI tải lại ảnh exact-frame theo bước 3; không dùng token cũ hay `currentTime` làm chứng cứ. Nếu file/index thay đổi hoặc không khôi phục được đúng frame, báo lỗi và khóa phép đo; không âm thầm chọn frame gần nhất.
+
+Video hỏng/codec không hỗ trợ, PTS thiếu/trùng/không đơn điệu, rotation hoặc mapping không xác minh, hết dung lượng và lỗi decode đều phải hiển thị trạng thái/lý do cụ thể; không công bố `READY` hay chốt mốc sai. Nếu ảnh tải hoặc decode lỗi sau khi `READY`, chỉ khóa frame hiện tại và báo lỗi. Không đưa video nhạy cảm, manifest hoặc ảnh frame vào repo.
+
+### Timestamp, proxy và lưu mốc
+
+Index source bắt đầu tại ordinal 0 theo thứ tự trình chiếu. `source_pts_ticks`, `origin_ticks` dùng cùng `time_base_num/time_base_den`, là số nguyên lưu dưới dạng chuỗi; `origin_ticks` là PTS frame đầu hợp lệ trong timeline được chọn sau demux. POC đánh dấu fallback timestamp hoặc edit list/discontinuity và chỉ chấp nhận khi mapping có thể xác minh. PTS trùng/thiếu/không đơn điệu hoặc trùng sau làm tròn microsecond không được hỗ trợ âm thầm.
+
+`source_pts_us = round((source_pts_ticks - origin_ticks) × time_base_num × 1_000_000 / time_base_den)`; tính bằng số nguyên/hữu tỉ, làm tròn gần nhất, nếu đúng nửa thì ra xa 0. Timestamp đã chuẩn hóa và duration là số nguyên microsecond không vượt `9007199254740991` để JS biểu diễn chính xác; raw ticks vẫn giữ chuỗi. Đây là quy ước Gate 1 đã được duyệt, không phải ngưỡng chính xác thực tế.
+
+Khoảng đo là `[Start, End)`: Start và End là PTS đầu hai frame gốc được chọn; frame tại End không nằm trong khoảng. Vì vậy để bao gồm frame cuối cần terminal boundary riêng có bằng chứng duration frame cuối; POC **chưa hỗ trợ chọn terminal boundary**, hiển thị giới hạn rõ. Không ước lượng bằng `frame/FPS` hay duration container.
+
+Mapping được tạo và xác minh theo pipeline version: mỗi proxy presentation frame/PTS gắn source ordinal và PTS. Với proxy CFR, các bản sao có thể cùng chỉ một source frame; source frame bị bỏ không có proxy tương ứng nhưng vẫn có thể decode trực tiếp theo ordinal. Khi người dùng tua, vị trí proxy chỉ dùng tìm frame proxy đang trình chiếu trong khoảng PTS của nó; tra mapping để lấy source. Nếu không xác định duy nhất proxy frame/source hoặc mapping lỗi, trả `MAPPING_UNVERIFIED`, không làm tròn tới frame gần nhất. Step và khôi phục mốc luôn decode source trực tiếp; một proxy frame lặp không tạo thêm source frame.
+
+Manifest measurement JSON local lưu `video_id`, SHA-256 original, index version, ordinal, raw ticks/time base/origin, normalized microseconds cho từng mốc. API ghi file tạm rồi đổi tên atomically; ghi lỗi giữ bản trước. Khi mở lại, đối chiếu mọi trường với original/index hiện tại trước khi tạo token mới. Token chỉ là tham chiếu ngắn hạn đến frame của index hiện tại, không dùng làm danh tính lâu dài. Việc lưu này phục vụ POC, không tạo session nghiệp vụ MVP hoặc tích hợp SQLite.
+
+**Ví dụ giả lập:** time base `1/1000` giây/tick, origin `1000`, Start ordinal 100 có PTS `5234`, End ordinal 147 có PTS `6790`. Start = `(5234−1000)×1000 = 4.234.000 µs`; End = `(6790−1000)×1000 = 5.790.000 µs`; duration = `1.556.000 µs = 1,556 giây`. Đây là ví dụ số học, không phải kết quả benchmark hoặc ngưỡng D-02.
+
+**Đối chiếu độc lập dự kiến:** tạo fixture tổng hợp CFR/VFR có bảng ground truth do generator ghi trước khi encode: ordinal, thời điểm hữu tỉ, nhãn frame hiển thị và orientation; kiểm tra bằng công cụ/decoder tham chiếu độc lập với pipeline POC và đối chiếu nhãn hình ảnh, không chỉ so sánh hai kết quả cùng một thuật toán. Chọn mốc đầu/giữa/cuối, so raw PTS, source ordinal và `duration_us` với manifest; báo sai lệch boundary/duration từng mẫu, MAE, max, drift và seek/step latency kèm cấu hình. Với video xưởng, IE xác nhận ground truth và bảo quản bằng chứng nội bộ; D-02 và D-05 còn mở nên chưa có go/no-go xưởng.
+
+### Tóm tắt endpoint POC
+
+Các endpoint dùng prefix `/api/poc`; contract OpenAPI chi tiết lưu local.
+
+| Endpoint | Request | Response thành công |
+| --- | --- | --- |
+| `POST /videos` | Multipart `file` MP4/MOV. | `202` video ID và trạng thái xử lý. |
+| `GET /videos/{video_id}` | Video ID. | `200` status, checksum/index/metadata khi sẵn sàng hoặc lỗi. |
+| `GET /videos/{video_id}/proxy` | Range tùy chọn. | `200`/`206` video MP4 và Content-Range cho một phần. |
+| `POST /videos/{video_id}/frame-selection` | Một trong `source_ordinal` hoặc `proxy_pts_us`. | `200` frame gốc, raw PTS/time base/origin, microseconds, checksum/index, token và image URL. |
+| `GET /videos/{video_id}/frames/{source_ordinal}/image` | Ordinal và `frame_token`. | `200` ảnh PNG và `X-Frame-Token`. |
+| `POST /videos/{video_id}/measurements` | Video ID. | `201` measurement ID, marks rỗng và duration null. |
+| `GET /measurements/{measurement_id}` | Measurement ID. | `200` marks đã lưu và duration; kiểm tra nguồn/index. |
+| `PUT /measurements/{measurement_id}/marks/{role}` | Role `start/end`, JSON `frame_token`. | `200` measurement; tính duration khi đủ hai mốc hợp lệ. |
+
+### Cách dùng contract và lỗi
+
+Contract OpenAPI chi tiết được lưu local; phần này mô tả request/response, thời gian và status. Các bước tiêu biểu: `POST /videos` → poll `GET /videos/{video_id}` → `GET /videos/{video_id}/proxy` → `POST /videos/{video_id}/frame-selection` với `{"source_ordinal":100}` hoặc `{"proxy_pts_us":4234000}` → tải `image_url` → `POST /videos/{video_id}/measurements` → `PUT /measurements/{measurement_id}/marks/start` với `{"frame_token":"<token-tu-frame>"}` → đặt End tương tự → `GET /measurements/{measurement_id}` để mở lại. `proxy_pts_us` thuộc timeline proxy, không phải source time; ví dụ chỉ minh họa cấu trúc.
+
+`Frame` trả `image_url` có token tương ứng; response ảnh mang `X-Frame-Token` giống token đã cấp. Token gắn video/checksum/index/ordinal và hết hiệu lực khi index hoặc video thay đổi; client chỉ gửi mark khi đã xác minh ảnh. Measurement trả `marks` rỗng/một/hai mốc và `duration_us: null` khi chưa đủ; server không tin PTS do client tự gửi. Hai mốc phải thuộc cùng original/index. GET measurement trả `409 INDEX_CHANGED` nếu checksum/index hiện tại không khớp.
+
+Ví dụ response rút gọn về cấu trúc, trong đó `<sha256>` và `<token>` là placeholder:
+
+```json
+{
+  "measurement_id": "m1", "video_id": "v1",
+  "marks": {
+    "start": {"original_sha256":"<sha256>", "index_version":"i1", "source_ordinal":100,
+      "source_pts_ticks":"5234", "time_base_num":1, "time_base_den":1000,
+      "origin_ticks":"1000", "source_pts_us":4234000},
+    "end": {"original_sha256":"<sha256>", "index_version":"i1", "source_ordinal":147,
+      "source_pts_ticks":"6790", "time_base_num":1, "time_base_den":1000,
+      "origin_ticks":"1000", "source_pts_us":5790000}
+  },
+  "duration_us": 1556000
+}
+```
+
+Ví dụ lỗi mốc trùng hoặc đảo: HTTP `422`, `{"code":"INVALID_INTERVAL","message":"End phải sau Start"}`. Các trường request/response đầy đủ được quy định trong schema OpenAPI; placeholder trong ví dụ không phải giá trị SHA-256 thực.
+
+| HTTP / code ví dụ | Ý nghĩa / hành vi |
+| --- | --- |
+| 400 `BAD_REQUEST` | Sai dạng request; sửa request. |
+| 404 `NOT_FOUND` | Video, measurement hoặc ordinal không tồn tại. |
+| 409 `VIDEO_NOT_READY`, `INDEX_CHANGED`, `STALE_FRAME` | Chưa xử lý xong, nguồn/index đổi, token cũ; chờ hoặc tải lại và xác minh frame. |
+| 413 `FILE_TOO_LARGE`; 415 `UNSUPPORTED_MEDIA` | Quá giới hạn cấu hình hoặc định dạng/codec không được hỗ trợ. |
+| 416 `RANGE_NOT_SATISFIABLE` | Range proxy không hợp lệ. |
+| 422 `INVALID_INTERVAL`, `MAPPING_UNVERIFIED`, `PTS_INVALID`, `FRAME_DECODE_FAILED` | Mốc bằng/đảo, mapping/PTS không tin cậy hoặc decode lỗi; giữ dữ liệu cũ và báo rõ. |
+| 507 `STORAGE_FULL` | Không đủ dung lượng; không công bố file/mốc ghi dở. |
+
+Đường dẫn local là cấu hình của server, dùng ID do server tạo và nằm ngoài repo: `originals/<video_id>/`, `proxies/<video_id>/<index_version>/`, `indexes/<video_id>/<index_version>/`, `measurements/`, `temp/`. Original không sửa; proxy/index chỉ công bố khi hoàn chỉnh, lưu checksum/version. Không trả đường dẫn file hệ thống, credential hay dữ liệu riêng vào API/log công khai. D-06 còn mở cho retention và quyền sử dụng video xưởng.
+
+### Đối chiếu AC-POC — kế hoạch, chưa phải kết quả
+
+| Tiêu chí | Thiết kế/bằng chứng dự kiến | Trạng thái |
+| --- | --- | --- |
+| AC-POC-01 | Upload MP4/MOV, probe CFR/VFR/rotation và báo unsupported; fixture theo manifest. | Chưa chạy. |
+| AC-POC-02 | Proxy mapping, source ordinal ±1, exact-frame/PTS, kiểm tra seek và đầu/cuối. | Chưa chạy. |
+| AC-POC-03 | Lưu/khôi phục hai mốc, từ chối đảo/trùng, hiệu timestamp source; ảnh phải được xác minh. | Chưa chạy. |
+| AC-POC-04 | Fixture/ground truth độc lập, so hình và PTS, boundary/duration error, drift, latency trên cấu hình ghi rõ. | Có fixture tổng hợp local; chưa benchmark POC. |
+| AC-POC-05 | Video xưởng + ngưỡng do chủ dự án/IE duyệt; đánh giá và quyết định go/no-go. | Chờ D-02/D-05, chưa có kết quả. |

@@ -6,17 +6,17 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 
 ## Hiện trạng
 
-| Hạng mục | Trạng thái thực tế tại lần khởi tạo |
+| Hạng mục | Trạng thái thực tế hiện tại |
 | --- | --- |
 | Repository | GitHub công khai; trước khởi tạo không có nhánh/commit, default branch trong metadata là `main`; clone local trống, remote `origin` trỏ đúng repo được giao. Tạo commit đầu tiên trên `main` theo yêu cầu. |
-| Bộ tài liệu | Đã soạn và rà soát 5 file Markdown ở root cho lần bàn giao này; chờ chủ dự án xem xét/phê duyệt nội dung và quyết định còn mở. |
-| P0-01 | Thực hiện một phần: yêu cầu, glossary, scope, ngoại lệ và decision log dạng nền tảng; chưa có phê duyệt Gate 1. |
-| P0-02 | Thực hiện một phần: kiến trúc và ranh giới API/timestamp; chưa có OpenAPI draft, contract chi tiết hoặc ADR đầy đủ được review. |
+| Bộ tài liệu | Chỉnh PR #1 để chỉ thay đổi 5 file root; nội dung Gate 1 được chuyển vào các file này. OpenAPI chi tiết và code ở workspace local. |
+| P0-01 | Chủ dự án xác nhận duyệt Gate 1 cho POC; các quyết định nghiệp vụ khác vẫn mở. |
+| P0-02 | Contract POC được duyệt trong Gate 1; contract MVP và ADR đầy đủ chưa hoàn tất. |
 | P0-03 | Chỉ khởi tạo Git/tài liệu; chưa có frontend/backend, dependency setup, README chạy app hoặc CI lint/test. Chưa hoàn tất task. |
-| P0-04 đến P0-08 | Chưa lập trình/chưa kiểm thử; chưa schema/migration, player/proxy pipeline, domain engine hoặc benchmark video. Gói P0-05/P0-06/P0-08 mới được xác định trong kế hoạch. |
+| P0-04 đến P0-08 | Đã bắt đầu code P0-05/P0-06 và kiểm tra kỹ thuật local; chưa xác minh pipeline FFprobe/H.264 đầy đủ. Chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
 | P0-10 | Mới có nguyên tắc sync/recovery trong kiến trúc, chưa thiết kế chi tiết được nghiệm thu hoặc triển khai recovery/sync. |
-| Phase 0 POC | **Chưa có POC chạy được; chưa có kết quả timestamp/benchmark/go-no-go.** |
+| Phase 0 POC | **Code sơ bộ ở local; chưa xác minh demo đầy đủ hoặc benchmark POC, chưa go/no-go xưởng.** |
 | Phase 1 MVP | **Chưa bắt đầu lập trình, chưa test ứng dụng, chưa pilot LAN hoặc UAT.** |
 | Phase 2–4 | AI, SOP, tích hợp và phân tích nâng cao chỉ là lộ trình đề xuất, chưa được triển khai. |
 
@@ -27,6 +27,22 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-18 — P0-05/P0-06/P0-08 và giới hạn GitHub
+
+- **Yêu cầu / task:** chủ dự án duyệt Gate 1, giao POC local và yêu cầu chỉnh PR #1 chỉ còn 5 file Markdown được phép trên GitHub; code, cấu hình, OpenAPI và test giữ local.
+- **Trạng thái:** Gate 1 đã được duyệt cho phạm vi POC; PR #1 đang được chỉnh để review. Đã tạo code sơ bộ local cho API, index/timestamp, player, lưu mốc, test và fixture; chưa tuyên bố POC hoàn tất.
+- **Thay đổi chính:** chuyển luồng, timestamp, ví dụ, API và AC-POC vào `ARCHITECTURE.md`; cập nhật yêu cầu/kế hoạch/quy tắc agent và giữ OpenAPI/code local. D-02/D-05 và go/no-go xưởng tiếp tục mở.
+- **Kiểm chứng thực tế:** `npm.cmd --prefix frontend run build` thành công; `py -3.12 -m pytest -q tests/test_contract.py` đạt 4 test với **pipeline video và ảnh giả lập**, không phải test FFprobe/proxy thật. Trên Windows 11 Enterprise, Python 3.12.9, Intel i5-1135G7, FFmpeg 6.1 có sẵn không có `libx264` hoặc PNG; FFprobe tải về và Python virtual environment bị Group Policy chặn. Đã tạo fixture tổng hợp MPEG-4 CFR/VFR/rotation bằng FFmpeg có sẵn; chưa đối chiếu đầy đủ pipeline POC hay đo latency seek/step ứng dụng. Người dùng đã xác nhận không cần chạy các executable bị policy chặn.
+- **Việc còn mở / lý do:** kiểm tra POC end-to-end, frame/proxy H.264, VFR/rotation, Start/End so với ground truth và sai lệch/latency trên môi trường được phép có FFprobe và FFmpeg đầy đủ; chưa có kết quả benchmark POC hoặc ngưỡng xưởng được duyệt. Không đưa code/OpenAPI/test lên GitHub.
+
+### 2026-11-18 — P0-01/P0-02: tài liệu và contract Gate 1
+
+- **Yêu cầu / task:** làm rõ luồng POC, timestamp/source mapping, lưu và mở lại hai mốc, OpenAPI draft và đối chiếu AC-POC-01–05; mở PR để review.
+- **Trạng thái:** tài liệu/contract đề xuất cho Gate 1 đã soạn; **Gate 1 chờ chủ dự án duyệt**. P0-01/P0-02 tổng thể còn phần chưa duyệt và contract/ADR MVP chưa hoàn tất. Chưa bắt đầu POC/MVP.
+- **Thay đổi chính:** thêm `POC_GATE1.md`, `openapi-poc.yaml`; cập nhật yêu cầu, kiến trúc, kế hoạch và hướng dẫn agent. Đề xuất measurement manifest local, khôi phục source frame theo checksum/index/ordinal/PTS, khóa mốc khi ảnh chưa xác minh; D-02 và D-05 vẫn mở.
+- **Kiểm chứng:** đối chiếu thiết kế với AC-POC-01–05, link và trạng thái giữa các file; `npx.cmd --yes @apidevtools/swagger-cli@4.0.4 validate openapi-poc.yaml` xác nhận OpenAPI hợp lệ. Kiểm tra link local, code fence, UTF-8, mã AC và mẫu nội dung nhạy cảm bằng Node.js; kiểm tra Git diff. Chưa chạy app, FFmpeg, SQLite, SharePoint, video xưởng, benchmark hoặc UAT; đây là kiểm tra tài liệu/contract.
+- **Việc còn mở / lý do:** chủ dự án duyệt Gate 1, boundary/rounding, mapping/exact-frame, contract và phạm vi POC. D-02/D-05 và xác minh IT tiếp tục mở; không kết luận go/no-go xưởng. Gói lập trình tiếp theo chỉ khi được giao: P0-05 + P0-06 + phần kiểm chứng kỹ thuật P0-08.
 
 ### 2026-11-18 — Khởi tạo bộ tài liệu dự án
 

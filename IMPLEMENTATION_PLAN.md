@@ -6,12 +6,14 @@ Ngày khởi tạo: 2026-11-18 (Asia/Bangkok). **Chỉ lập kế hoạch; chưa
 
 ## 1. Gate và thứ tự
 
-1. Lần hiện tại: soạn/review 5 file root, kiểm tra công khai, commit và push; không viết POC.
-2. Gate 1: chủ dự án duyệt phần nền tảng P0-01/P0-02 và ràng buộc local storage; hoàn thiện domain/contract cần cho gói đầu. Bản tài liệu hiện tại chỉ đáp ứng một phần P0-01/P0-02.
+1. Lần khởi tạo: soạn/review 5 file root, kiểm tra công khai, commit và push; không viết POC.
+2. Gate 1: chủ dự án đã duyệt phần nền tảng P0-01/P0-02 và phạm vi POC; contract MVP và ADR đầy đủ vẫn là việc sau.
 3. Gói lập trình đầu khi được giao: **P0-05 + P0-06 + phần kiểm chứng P0-08**, với môi trường tối thiểu thuộc phần cần thiết của P0-03. Không yêu cầu làm toàn bộ P0-03/P0-04 trước demo video; ghi rõ manifest tạm, không coi đã có schema/migration hoặc CI hoàn chỉnh.
 4. Gate 2: benchmark video điện thoại/camera thực tế theo D-02/D-05 và quyết định go/no-go. POC tổng hợp có thể kiểm tra kỹ thuật trước, nhưng không thay thế gate xưởng.
 5. Hoàn thiện các nền tảng P0 còn lại theo phụ thuộc; chạy P0-09 với IT độc lập với đường local-only và P0-10 cho recovery/retention.
 6. Phase 1 xây vertical slice Upload → Annotate → Calculate → Save → Excel, rồi hoàn thiện review/approval và pilot LAN. Gate 3: UAT và các AC-MVP đạt; AI/SOP sau khi MVP ổn định.
+
+Chủ dự án xác nhận duyệt Gate 1 và đã giao gói lập trình đầu; luồng và contract POC được tóm tắt trong [kiến trúc](ARCHITECTURE.md). D-02/D-05 vẫn mở. Code, OpenAPI và test nằm local; GitHub chỉ nhận 5 file root theo [AGENTS.md](AGENTS.md).
 
 SharePoint không chặn MVP local-only nếu IT chưa duyệt hoặc kết luận không khả thi. Những phần thuộc SharePoint trong P0-10 được giữ ở mức thiết kế có điều kiện; recovery/backup local vẫn cần thực hiện.
 
@@ -30,7 +32,7 @@ Phần tính hiệu hai mốc là tính năng tối thiểu trong demo P0-06 đ�
 
 Đầu vào: Gate 1, quy ước timestamp/boundary P0-02, môi trường tối thiểu chạy FE/BE/FFmpeg, fixtures tổng hợp có ground truth. Video xưởng hợp lệ theo D-05 và ngưỡng D-02 cần trước kết luận go/no-go thực tế; không dùng sự thiếu vắng chúng để tự đặt ngưỡng.
 
-Đầu ra cần có: demo chạy được; hướng dẫn chạy và dependency pin khi lập trình; metadata/index/mapping manifest; UI Start/End/duration; báo cáo benchmark với test đã chạy, sai lệch, known limitations và khuyến nghị gate. Chỉ đưa fixture/báo cáo không nhạy cảm lên repo; video xưởng và raw bằng chứng ở ngoài repo.
+Đầu ra cần có: demo chạy được; hướng dẫn chạy và dependency pin khi lập trình; metadata/index/mapping manifest; UI Start/End/duration; báo cáo benchmark với test đã chạy, sai lệch, known limitations và khuyến nghị gate. Fixture, code và bằng chứng chi tiết giữ local; chỉ tóm tắt kết quả phù hợp công khai trong 5 file được phép trên GitHub.
 
 ### Nghiệm thu và bằng chứng
 
@@ -45,14 +47,14 @@ Phần tính hiệu hai mốc là tính năng tối thiểu trong demo P0-06 đ�
 | Thiếu/hỏng/PTS bất thường | Thông báo và trạng thái rõ, không tạo phép đo sai mà vẫn báo hợp lệ. |
 | Video xưởng | IE xác nhận bộ mẫu và ground truth; đo theo ngưỡng D-02 đã duyệt; chủ dự án quyết định go/no-go. Nếu thiếu thì báo P0-08 thực hiện một phần/chờ duyệt. |
 
-Trạng thái hiện tại: **chưa bắt đầu gói lập trình**, chưa có demo, fixture, benchmark hoặc kết quả go/no-go.
+Trạng thái hiện tại: đã bắt đầu xây dựng local; chưa có bằng chứng chạy đầy đủ proxy H.264/frame/timestamp trên môi trường này. Kết quả và phần còn mở được ghi trong [PROGRESS.md](PROGRESS.md); chưa có go/no-go xưởng.
 
 ## 3. Phase 0 — POC
 
 | ID / task nguồn | Đầu ra | Phụ thuộc | Tiêu chí nghiệm thu |
 | --- | --- | --- | --- |
-| P0-01 — PRD & domain glossary | Yêu cầu, glossary, use cases, ngoại lệ, scope, decision log. | Nguồn và chủ dự án; D-01/D-08/D-09 cho quy tắc IE. | Bao phủ luồng/manual scope, ngoại lệ và gate; quyết định còn mở có người duyệt; chủ dự án chấp nhận phần cần cho Gate 1. Bản hiện tại mới là nền tảng, chưa phê duyệt. |
-| P0-02 — Architecture & API contracts | Kiến trúc, service boundaries, OpenAPI draft, schema request/response/error, timestamp contract và ADR/quyết định. | P0-01; D-04; thống nhất boundary/source mapping. | API FE/BE/video nhất quán, hợp đồng đơn vị thời gian và lỗi rõ; review kiến trúc/contract trước triển khai liên quan. Hiện chỉ có mô tả kiến trúc, chưa OpenAPI/ADR đầy đủ. |
+| P0-01 — PRD & domain glossary | Yêu cầu, glossary, use cases, ngoại lệ, scope, decision log. | Nguồn và chủ dự án; D-01/D-08/D-09 cho quy tắc IE. | Bao phủ luồng/manual scope, ngoại lệ và gate; chủ dự án đã chấp nhận phần Gate 1 cho POC, quyết định nghiệp vụ khác còn mở. |
+| P0-02 — Architecture & API contracts | Kiến trúc, service boundaries, OpenAPI draft, schema request/response/error, timestamp contract và ADR/quyết định. | P0-01; D-04; thống nhất boundary/source mapping. | Contract POC đã được duyệt trong Gate 1; contract MVP và ADR đầy đủ chưa hoàn tất. API FE/BE/video cần nhất quán đơn vị thời gian và lỗi. |
 | P0-03 — Repo, CI & development setup | FE/BE khởi động, dependency pin, hướng dẫn/README, lint/test CI. | P0-02 và môi trường D-04. | Checkout sạch cài/chạy được theo hướng dẫn, CI chạy thực có kết quả; không coi commit tài liệu đầu là hoàn tất setup. Gói đầu chỉ làm setup tối thiểu cần thiết. |
 | P0-04 — SQLite schema & migrations | Schema/constraints, Alembic migrations, transaction/concurrency và backup POC. | P0-01/02/03; D-06 cho chính sách backup. | Upgrade/downgrade trên DB thử, foreign keys/interval checks, SQLite local đúng vị trí, backup API và restore thử có bằng chứng. |
 | P0-05 — Video metadata & transcoding POC | Original checksum/metadata, CFR/VFR/rotation probe, H.264 proxy, source index và mapping. | Phần P0-01/02 đã duyệt, setup tối thiểu P0-03, fixtures; D-05 cho mẫu xưởng. | MP4/MOV thuộc bộ mẫu mở được, original không đổi, orientation đúng, raw/source/proxy PTS có thể đối chiếu và lỗi rõ; AC-POC-01/02/04. Thuộc gói đầu. |
