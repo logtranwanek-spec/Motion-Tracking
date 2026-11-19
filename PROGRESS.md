@@ -28,6 +28,14 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-19 — Thử chạy POC với bộ công cụ IT được phép
+
+- **Yêu cầu / task:** chạy lại P0-05/P0-06 và phần kiểm chứng kỹ thuật P0-08 theo `README_POC_LOCAL.md` với FFmpeg/FFprobe được IT cho phép.
+- **Trạng thái:** bị chặn trước khi chạy media. `FFMPEG`/`FFPROBE` không được cấu hình; `Get-Command ffmpeg,ffprobe -All -ErrorAction SilentlyContinue` không tìm thấy executable trên PATH. Chưa có đường dẫn bộ IT cho phép để thực hiện preflight trong runbook.
+- **Đã kiểm tra:** đọc `AGENTS.md`, `README_POC_LOCAL.md`, `PROJECT_REQUIREMENT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION_PLAN.md` và trạng thái/AC-POC trong file này. Xác nhận PR #1 vẫn mở và diff của PR chỉ gồm 5 file Markdown root được phép.
+- **Không chạy / lý do:** không chạy FFmpeg/FFprobe hoặc test fixture/app vì không có bộ công cụ đã xác nhận IT cho phép. FFmpeg Siemens đã kiểm tra ở lần trước có chữ ký hợp lệ nhưng thiếu encoder H.264/`libx264`, encoder/decoder PNG và không có xác nhận IT cho phép; FFprobe trước đó bị Group Policy chặn. Không đổi Group Policy, không thử chạy lại executable bị chặn. Không có số đo sai lệch hay latency mới.
+- **Việc còn mở:** cần đường dẫn tới FFmpeg/FFprobe được IT cho phép với H.264 encode và PNG encode/decode để chạy smoke test trong README, rồi chạy CFR/VFR/rotation qua upload → proxy → seek/step → Start/End → lưu/mở lại và đối chiếu ground truth. D-02, D-05 và quyết định go/no-go video xưởng vẫn mở. Code, cấu hình, test và video tiếp tục chỉ ở local.
+
 ### 2026-11-19 — Chuẩn bị lượt chạy lại POC trên máy được IT cho phép
 
 - **Yêu cầu / task:** tiếp tục P0-05/P0-06 và phần kiểm chứng kỹ thuật P0-08; nếu chưa có máy/bộ công cụ phù hợp, chuẩn bị lệnh PowerShell chạy lại kiểm tra công cụ và bài test.
