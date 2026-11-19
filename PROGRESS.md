@@ -28,6 +28,16 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-19 — Chuẩn bị lượt chạy lại POC trên máy được IT cho phép
+
+- **Yêu cầu / task:** tiếp tục P0-05/P0-06 và phần kiểm chứng kỹ thuật P0-08; nếu chưa có máy/bộ công cụ phù hợp, chuẩn bị lệnh PowerShell chạy lại kiểm tra công cụ và bài test.
+- **Trạng thái:** chưa có bộ FFmpeg/FFprobe vừa đủ tính năng vừa xác nhận được IT cho phép; **end-to-end CFR/VFR/rotation chưa chạy**. Không đổi Group Policy, không chạy lại FFprobe unsigned từng bị chặn.
+- **Lệnh kiểm tra môi trường đã chạy:** `Get-Command ffmpeg,ffprobe -All -ErrorAction SilentlyContinue`; `Get-AuthenticodeSignature -LiteralPath $candidate`; `& $candidate -version`; `& $candidate -hide_banner -encoders 2>&1 | Select-String -Pattern 'libx264|h264|png|mpeg4|msmpeg4'`; lệnh tương tự với `-decoders`; `py -3.12 --version`; `node --version`; `npm.cmd --version`. `$candidate` là FFmpeg trong thư mục SolidWorks đã ghi ở mục nhật ký trước.
+- **Kết quả công cụ:** FFmpeg/FFprobe không có trên PATH. FFmpeg 6.1 có Authenticode `Valid`, signer Siemens Industry Software Inc.; danh sách không có encoder `libx264`/H.264 hoặc PNG, decoder có H.264 nhưng không có PNG. Chữ ký không tự chứng minh IT phê duyệt. FFprobe hợp lệ/được IT cho phép chưa được xác minh. Python 3.12.9, Node v26.12.1 và `npm.cmd` 11.20.0 sẵn có; `.deps` và `frontend/node_modules` tồn tại. Gọi `npm --version` bị PowerShell chặn script `npm.ps1`, nên dùng `npm.cmd`, không đổi policy.
+- **Kiểm tra local không cần media đã chạy:** `$env:PYTHONPATH = Join-Path (Get-Location) '.deps'; py -3.12 -m pytest -q tests/test_contract.py` → **5 passed, 1 DeprecationWarning**; các test thay pipeline media bằng stub. `npm.cmd --prefix frontend run build` → thành công. Đây không phải test video end-to-end.
+- **Runbook local:** thêm `README_POC_LOCAL.md` với lệnh copy/paste để xác minh đường dẫn/chữ ký/capability, smoke test H.264 + encode/decode PNG + FFprobe, cài dependency, chạy contract test/build, tạo fixture/ground truth và khởi chạy app để kiểm tra thủ công upload → seek/step → Start/End → refresh/mở lại. Tài liệu runbook, code, cấu hình, test và video giữ local; GitHub chỉ nhận file trong danh sách 5 Markdown được phép.
+- **Chưa chạy / việc còn mở:** thiếu FFprobe được IT cho phép, encoder `libx264`/H.264, encoder/decoder PNG. Chưa tạo proxy hoặc chạy app trên CFR/VFR/rotation; chưa so ảnh/PTS proxy-source, thao tác sau seek, Start/End/duration hoặc đo latency seek/step. Ghi cụ thể thiết bị và giá trị thực tế khi chạy được runbook. D-02, D-05 và quyết định go/no-go trên video xưởng vẫn mở.
+
 ### 2026-11-19 — Kiểm tra lại FFmpeg/FFprobe theo chính sách máy
 
 - **Yêu cầu / task:** xác minh môi trường thực tế cho P0-05/P0-06/P0-08; nếu thiếu, ghi tính năng còn thiếu và lệnh chạy lại trên máy có bộ công cụ được IT cho phép.
