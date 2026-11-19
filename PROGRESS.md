@@ -28,6 +28,15 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-19 — Kiểm tra lại FFmpeg/FFprobe theo chính sách máy
+
+- **Yêu cầu / task:** xác minh môi trường thực tế cho P0-05/P0-06/P0-08; nếu thiếu, ghi tính năng còn thiếu và lệnh chạy lại trên máy có bộ công cụ được IT cho phép.
+- **Trạng thái:** môi trường hiện tại **không đủ điều kiện end-to-end**. Không chạy pipeline upload/proxy/frame trong lượt này; không vượt Group Policy.
+- **Lệnh đã chạy:** `Get-Command ffmpeg,ffprobe -All -ErrorAction SilentlyContinue`; `Get-AuthenticodeSignature -LiteralPath $ffmpegExe`; `& $ffmpegExe -version`; `& $ffmpegExe -hide_banner -encoders 2>&1 | Select-String -Pattern 'libx264|h264|png|mpeg4|msmpeg4'`; và lệnh tương tự với `-decoders`. `$ffmpegExe` là `C:\Program Files\SolidWorks Corp 2024\SOLIDWORKS\FloXpress\bin\ffmpeg.exe`.
+- **Kết quả thực tế:** không có `ffmpeg` hoặc `ffprobe` trên PATH. FFmpeg vendor version 6.1, chữ ký Siemens hợp lệ; có decoder H.264, nhưng encoder list không có `libx264` hay encoder H.264 nào, và không có encoder PNG. Decoder list không có PNG. FFprobe ở `C:\Users\logtran\AppData\Local\Temp\motion-ffmpeg-tools\node_modules\@ffprobe-installer\win32-x64\ffprobe.exe` là file không ký số và đã bị Group Policy chặn trước đó; không chạy lại. Không có FFprobe đã xác minh/được phép trong PATH hoặc thư mục tiện ích đã kiểm tra.
+- **Lệnh chạy lại trên máy được IT cho phép:** đặt `$env:FFMPEG` và `$env:FFPROBE` thành đường dẫn bộ cài được phép; xác nhận `Get-AuthenticodeSignature` theo chính sách IT, chạy `& $env:FFMPEG -version` và `& $env:FFPROBE -version`, rồi kiểm tra `& $env:FFMPEG -hide_banner -encoders 2>&1 | Select-String 'libx264|png'` và `& $env:FFMPEG -hide_banner -decoders 2>&1 | Select-String 'png'`. Chỉ chạy demo nếu có encoder `libx264`, encoder/decoder `png` và FFprobe hoạt động; khi đó làm theo các lệnh fixture, pytest, build và uvicorn trong `README_POC_LOCAL.md` tại workspace local.
+- **Việc còn mở:** toàn luồng CFR/VFR/rotation, proxy-to-source, step sau seek, mở lại mốc, sai lệch/latency ứng dụng chưa chạy do thiếu công cụ. D-02, D-05 và go/no-go video xưởng vẫn mở. PR #1 vẫn chỉ được phép chứa 5 file Markdown; code/OpenAPI/test giữ local.
+
 ### 2026-11-19 — Tiếp tục POC local sau giới hạn Group Policy
 
 - **Yêu cầu / task:** tiếp tục P0-05 + P0-06 + phần kiểm chứng kỹ thuật P0-08 tại workspace; áp dụng quy tắc GitHub chỉ nhận 5 file Markdown root và cập nhật PR #1.
