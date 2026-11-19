@@ -28,6 +28,15 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-19 — Tiếp tục POC local sau giới hạn Group Policy
+
+- **Yêu cầu / task:** tiếp tục P0-05 + P0-06 + phần kiểm chứng kỹ thuật P0-08 tại workspace; áp dụng quy tắc GitHub chỉ nhận 5 file Markdown root và cập nhật PR #1.
+- **Trạng thái:** có scaffold API FastAPI/UI React TypeScript và công cụ fixture local; **chưa đạt nghiệm thu end-to-end video POC**. PR #1 đang mở và Files changed chỉ gồm đúng 5 file được phép.
+- **Thay đổi local:** upload MP4/MOV, trạng thái xử lý, frame selection theo ordinal hoặc proxy timestamp, yêu cầu ảnh source có frame token, Start/End và thời lượng source PTS, measurement JSON atomic, xác minh lại SHA/index khi mở; giới hạn upload và chặn vùng data đặt trong repo/OneDrive. Thêm hướng dẫn PowerShell, generator và checker fixture. Code, OpenAPI, cấu hình, test, fixture vẫn local.
+- **Kiểm chứng thực tế:** `py -3.12 -m pytest -q tests/test_contract.py` — **5 passed**, một cảnh báo deprecated từ dependency; media/index và ảnh được stub trong các test API. `npm.cmd --prefix frontend run build` — thành công. Trước đó FastAPI/UI trả HTTP 200 và giao diện khởi động trong Chrome headless. Fixture nguồn CFR/VFR/rotation đã đối chiếu PTS/màu/chiều ảnh với manifest: sai lệch mốc Start, End, duration đều 0 µs ở các fixture giả lập; phép đo BMP nguồn median 73,9 ms, max 80,4 ms, không phải latency ứng dụng. `git diff --check` và kiểm tra Markdown/liên kết AC đạt.
+- **Chưa xác minh:** không chạy executable FFprobe/Python venv bị Group Policy chặn theo xác nhận của người dùng. FFmpeg có sẵn thiếu `libx264` và PNG, nên chưa chạy tạo proxy H.264, so ánh xạ source/proxy end-to-end, ảnh exact-frame từ API, tương tác player với video, sai lệch/latency seek-step thực tế. Không có clip xưởng, không chốt D-02/D-05 và không đưa ra go/no-go.
+- **Việc còn mở:** trên máy có bộ FFmpeg/FFprobe được IT cho phép, chạy demo với fixture CFR/VFR/rotation và đo Start/End/duration, mở lại, hai chiều step sau seek, đầu/cuối video và lỗi đầu vào; đo latency seek/step trên cấu hình ghi rõ. Sau đó chỉ kết luận P0-08 kỹ thuật theo bằng chứng fixture; D-02/D-05 và go/no-go xưởng vẫn cần quyết định riêng. SQLite nghiệp vụ, SharePoint, Excel, AI chưa triển khai.
+
 ### 2026-11-18 — P0-05/P0-06/P0-08 và giới hạn GitHub
 
 - **Yêu cầu / task:** chủ dự án duyệt Gate 1, giao POC local và yêu cầu chỉnh PR #1 chỉ còn 5 file Markdown được phép trên GitHub; code, cấu hình, OpenAPI và test giữ local.
