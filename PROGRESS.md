@@ -28,6 +28,14 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-19 — Kiểm tra khả năng dùng PyAV thay FFmpeg CLI
+
+- **Yêu cầu / task:** thử phương án PyAV local cho decode/PTS/time_base, proxy H.264, PNG và nếu đủ điều kiện thì tích hợp/test luồng POC.
+- **Trạng thái:** chưa cài hoặc chạy PyAV. Chưa xác nhận được chính sách IT cho phép cài/chạy native extension mới; tuân thủ điều kiện của yêu cầu và không tải/cài package.
+- **Lệnh kiểm tra đã chạy:** đặt `$env:PYTHONPATH = Join-Path (Get-Location) '.deps'`; chạy `py -3.12 -c "import importlib.util; s=importlib.util.find_spec('av'); print('av_spec='+str(s)); print('av_origin='+(s.origin if s else 'not-installed'))"`; kiểm tra thư mục `.deps` với `Get-ChildItem -LiteralPath .deps -Directory -Filter 'av*'`. Kết quả `av_spec=None`, `av_origin=not-installed`, không có distribution `av*` trong `.deps`.
+- **Phạm vi chưa chạy:** không decode fixture CFR/VFR/rotation, không đọc/đối chiếu PTS/time_base hoặc hình; không kiểm tra encode proxy H.264/browser, trích PNG, tua/step, Start/End, lưu/mở lại hoặc latency. Vì chưa có kết quả giải mã/proxy, không tích hợp backend, không đổi kiến trúc/định dạng proxy và không kết luận phần nào của PyAV đã đạt.
+- **Việc còn mở:** cần IT xác nhận việc cài và chạy PyAV wheel/native libraries được phép trên máy thử. Sau đó mới cài trong phạm vi local, ghi version/build/codec capabilities, chạy đối chiếu độc lập theo README và chỉ tích hợp nếu cả decode lẫn proxy/image đáp ứng contract. D-02, D-05 và quyết định go/no-go trên video xưởng vẫn mở; code, cấu hình, test và clip giữ local.
+
 ### 2026-11-19 — Thử chạy POC với bộ công cụ IT được phép
 
 - **Yêu cầu / task:** chạy lại P0-05/P0-06 và phần kiểm chứng kỹ thuật P0-08 theo `README_POC_LOCAL.md` với FFmpeg/FFprobe được IT cho phép.
