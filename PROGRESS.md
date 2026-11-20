@@ -28,6 +28,14 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-20 — Đánh giá lựa chọn khác ngoài FFprobe
+
+- **Yêu cầu / phạm vi:** xác định có thể dùng runtime khác ngoài FFprobe cho Motion Tracking không.
+- **Kết quả nghiên cứu:** PyAV cung cấp truy cập frame PTS/time_base nhưng là binding của FFmpeg libraries; có thể thay CLI FFprobe chứ không loại bỏ nền tảng FFmpeg. GStreamer có API discovery và PTS trên buffer, nhưng plugin decode/encode phải được kiểm tra theo máy. Browser-native `<video>` phù hợp mở/phát local như 15.CIOS, nhưng chưa được xác minh cho source-frame PTS/VFR theo AC-POC.
+- **Thay đổi tài liệu:** bổ sung các ứng viên và giới hạn vào D-10 trong `PROJECT_REQUIREMENT.md` và `ARCHITECTURE.md`; không chọn hoặc cài runtime.
+- **Kiểm chứng:** đối chiếu tài liệu chính thức PyAV/GStreamer; không cài/chạy package, không chạy media tools, không mở video hoặc đổi Group Policy.
+- **Việc còn mở:** cần IT xác nhận runtime/plugin được phép rồi thử trên fixture CFR/VFR/rotation, so frame/PTS, proxy H.264/PNG và chứng minh file không gửi lên server. D-10 chưa chốt; D-02, D-05 và go/no-go video xưởng vẫn mở.
+
 ### 2026-11-20 — Chẩn đoán POC không mở được video
 
 - **Yêu cầu / task:** kiểm tra lỗi mở video hiện tại, liên quan P0-05/P0-06.

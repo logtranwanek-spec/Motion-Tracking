@@ -168,6 +168,18 @@ Manifest measurement JSON POC lưu trên workstation ghi SHA-256 original, local
 
 **Đối chiếu độc lập dự kiến:** tạo fixture tổng hợp CFR/VFR có bảng ground truth do generator ghi trước khi encode: ordinal, thời điểm hữu tỉ, nhãn frame hiển thị và orientation; kiểm tra bằng công cụ/decoder tham chiếu độc lập với pipeline POC và đối chiếu nhãn hình ảnh, không chỉ so sánh hai kết quả cùng một thuật toán. Chọn mốc đầu/giữa/cuối, so raw PTS, source ordinal và `duration_us` với manifest; báo sai lệch boundary/duration từng mẫu, MAE, max, drift và seek/step latency kèm cấu hình. Với video xưởng, IE xác nhận ground truth và bảo quản bằng chứng nội bộ; D-02 và D-05 còn mở nên chưa có go/no-go xưởng.
 
+### Ứng viên media runtime trên workstation — D-10 còn mở
+
+Các phương án dưới đây là ứng viên để đánh giá, chưa phải quyết định hoặc kết quả kiểm thử:
+
+| Phương án | Có thể thay phần nào | Giới hạn cần xác minh |
+| --- | --- | --- |
+| Browser File API + `<video>` | Mở/phát file local bằng decoder sẵn có trong Chrome/Edge; không cần upload file hay gọi FFprobe để preview. Đây là cách tham khảo từ 15.CIOS. | Chỉ coi là playback; phải chứng minh cách lấy PTS, định danh đúng frame sau seek, VFR và rotation trước khi bật annotation theo contract. Object URL/File permission có vòng đời theo browser. |
+| PyAV | Python binding của FFmpeg libraries, có thể đọc container/stream/frame và `Frame.pts` cùng `time_base`; có thể thay lời gọi CLI FFprobe trong code Python. | Không loại bỏ dependency FFmpeg libraries; encode H.264/PNG và khả năng cài/chạy phụ thuộc build/wheel, policy IT và codec thực tế. [PyAV](https://pyav.org/docs/stable/) · [PTS/time_base](https://pyav.org/docs/stable/api/time.html). |
+| GStreamer | Dùng `GstDiscoverer` để đọc thông tin media và pipeline decode cục bộ để nhận PTS của buffer; có thể thay FFprobe/FFmpeg CLI nếu plugin pipeline đáp ứng. | Cần xác minh plugin/container/decoder, rotation, frame seek, H.264 encoder và PNG trên máy Windows được phép; `PTS` có thể không có và phải fail rõ. [GstDiscoverer](https://gstreamer.freedesktop.org/documentation/pbutils/gstdiscoverer.html) · [GstBuffer PTS](https://gstreamer.freedesktop.org/documentation/gstreamer/gstbuffer.html). |
+
+Không phương án nào được chọn chỉ vì mở/phát được một clip. Tiêu chí chọn vẫn là xử lý hoàn toàn trên workstation, không gửi media bytes lên server, giữ PTS gốc cho CFR/VFR, rotation đúng, exact-frame khi tua/step, tạo proxy nếu cần và kiểm chứng capability theo chính sách IT. Nếu chỉ dùng browser playback mà chưa xác minh PTS/frame, khóa Start/End thay vì gán mốc không đáng tin cậy.
+
 ### Ranh giới API sau thay đổi yêu cầu lưu video
 
 OpenAPI local hiện tại có `POST /videos` multipart, proxy/image routes và xử lý video phía server; contract đó **không còn phù hợp** và chưa được dùng làm contract cho phiên bản user-local. Không gửi original, proxy, ảnh frame, File object, đường dẫn hoặc FileSystem handle đến API LAN.
