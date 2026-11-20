@@ -28,6 +28,14 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-20 — Rà soát tham chiếu Time Study có phát video
+
+- **Yêu cầu / task:** sau khi làm rõ vị trí, xem phần Time Study/video trong một ứng dụng nội bộ khác để hiểu cách chọn mốc thời gian.
+- **Kết quả đọc mã:** component trình duyệt dùng input file local, `URL.createObjectURL`, `<video>` native và `HTMLVideoElement.currentTime`; người dùng bấm timeline để seek và thêm breakpoint. Các breakpoint là số giây dạng float, tạo các khoảng liền kề từ đầu đến cuối clip; mốc cách nhau dưới 80 ms bị xem là trùng.
+- **Lưu trữ và giới hạn:** backend nhận metadata/element start-end-duration và excluded periods; file video không được upload/lưu cùng phép đo, không có checksum hoặc source-frame/PTS reference. Không thấy frame-step, xác minh ảnh frame gốc hay mapping proxy/source. Cách này hữu ích làm UI thử nghiệm cho video browser hỗ trợ, nhưng chưa đủ cho kiểm chứng frame/PTS chính xác và VFR theo AC-POC-02/04.
+- **Tác động tới Motion Tracking:** chưa đổi kiến trúc hoặc contract; có thể dùng tham khảo luồng chọn file, phát và timeline, nhưng vẫn cần chứng minh timestamp/frame identity theo Gate 1 trước khi xem xét thay media pipeline. Đây chỉ là rà soát mã nguồn tham chiếu; không sửa/chạy ứng dụng tham chiếu, không sửa code/test/clip Motion Tracking và không chạy test trong lượt này.
+- **Việc còn mở:** PyAV chưa được xác nhận/cài/chạy theo chính sách IT; giải mã exact-frame, proxy H.264/PNG và E2E Motion Tracking chưa kiểm chứng. D-02, D-05 và quyết định go/no-go video xưởng vẫn mở.
+
 ### 2026-11-19 — Kiểm tra khả năng dùng PyAV thay FFmpeg CLI
 
 - **Yêu cầu / task:** thử phương án PyAV local cho decode/PTS/time_base, proxy H.264, PNG và nếu đủ điều kiện thì tích hợp/test luồng POC.
