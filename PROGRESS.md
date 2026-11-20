@@ -120,3 +120,10 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 - **Thay đổi local:** run.cmd kiểm tra Python 3.12 và dependency hiện có, đặt PYTHONPATH tới .deps, build frontend bằng npm.cmd, đặt vùng dữ liệu mặc định trong %LOCALAPPDATA%\MotionTrackingPOC nếu người dùng chưa cấu hình, rồi chạy Uvicorn tại 127.0.0.1:8000. Cập nhật README_POC_LOCAL.md cách khởi chạy và điều kiện media. Launcher không tự cài dependency, không gọi/tải FFmpeg hoặc FFprobe, không mở cổng LAN và không thay đổi Group Policy.
 - **Kiểm chứng thực tế:** rà soát tĩnh lệnh trong run.cmd theo hướng dẫn chạy hiện có; chưa chạy launcher hoặc server trong lượt này. Không có kiểm tra phát/seek video mới. Ghi nhận run.cmd và README_POC_LOCAL.md ở local; PR #1 chỉ nhận mục nhật ký này trong PROGRESS.md.
 - **Việc còn mở:** cần chạy run.cmd trên máy để xác nhận server khởi động; xử lý video vẫn cần FFmpeg/FFprobe được IT cho phép và cấu hình trong FFMPEG/FFPROBE. D-02, D-05 và go/no-go video xưởng tiếp tục mở.
+
+### 2026-11-20 — Chỉnh giao diện workstation theo hướng chuyên nghiệp
+
+- **Yêu cầu / phạm vi:** làm giao diện Motion Tracking gọn và chuyên nghiệp hơn, giữ nguyên quy trình nghiệp vụ và contract POC đã duyệt.
+- **Thay đổi local:** làm rõ luồng 3 bước Video nguồn → Xác minh frame → Time study; chuẩn hóa typography, màu sắc, khoảng cách, panel và trạng thái; tăng phân biệt trạng thái local/xử lý/xác minh; thêm vị trí frame cạnh điều khiển; làm rõ hành động Start/End; cải thiện bố cục responsive, focus bàn phím và tôn trọng reduced-motion. Cập nhật title trình duyệt. Chỉ sửa giao diện local, không đổi API hay timestamp.
+- **Kiểm chứng thực tế:** npm.cmd --prefix frontend run build hoàn tất với exit code 0; script build chạy tsc --project tsconfig.json. Chưa chạy browser để xem giao diện, chưa thao tác video và chưa chạy media end-to-end.
+- **Việc còn mở:** review giao diện trên browser và xác minh tương tác thực khi có công cụ FFmpeg/FFprobe được IT cho phép. D-02, D-05 và quyết định go/no-go video xưởng tiếp tục mở. Mã giao diện giữ local; PR #1 chỉ nhận nhật ký PROGRESS.md.
