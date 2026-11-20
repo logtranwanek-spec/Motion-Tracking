@@ -28,6 +28,14 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-20 — Kiểm tra engine có sẵn trên Windows
+
+- **Yêu cầu / phạm vi:** xem máy Windows có engine media tích hợp tương tự khả năng mở video của Clipchamp không, để cân nhắc thay FFprobe/FFmpeg CLI.
+- **Kết quả nghiên cứu:** Windows Media Foundation có Source Reader để đọc media cục bộ và trả timestamp sample theo đơn vị 100 ns; Microsoft cảnh báo seek không phải lúc nào cũng frame-accurate. Clipchamp hỗ trợ nhiều container như MP4/MOV nhưng có thể tự chuyển đổi khi import; đây là ứng dụng biên tập, chưa xác minh là API/engine dùng được trong Motion Tracking.
+- **Thay đổi tài liệu:** thêm Media Foundation vào danh sách ứng viên D-10 trong yêu cầu và kiến trúc, kèm giới hạn helper native, timestamp và seek. Chưa chuyển ứng viên thành quyết định.
+- **Kiểm chứng:** đọc tài liệu Microsoft Learn/Support chính thức; không kiểm tra phiên bản/capability trên máy, không viết/chạy helper, không cài engine hoặc đọc video.
+- **Việc còn mở:** cần xác minh codec MP4/MOV, HEVC nếu có, VFR/PTS, rotation, frame-step/seek và proxy H.264/PNG trên workstation được IT cho phép. D-10 chưa chốt; D-02, D-05 và go/no-go video xưởng vẫn mở.
+
 ### 2026-11-20 — Đánh giá lựa chọn khác ngoài FFprobe
 
 - **Yêu cầu / phạm vi:** xác định có thể dùng runtime khác ngoài FFprobe cho Motion Tracking không.
