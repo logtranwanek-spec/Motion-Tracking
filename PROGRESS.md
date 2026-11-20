@@ -113,3 +113,10 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 - **Kiểm chứng thực tế:** npm.cmd --prefix frontend run build → exit code 0; script build hiện chạy tsc --project tsconfig.json, xác nhận TypeScript compile. git diff --check không báo lỗi. Đây không phải kiểm tra browser playback, API/video pipeline hay tương tác seek/step end-to-end.
 - **Giới hạn và việc còn mở:** môi trường hiện chưa có FFprobe được IT cho phép và FFmpeg đầy đủ encoder H.264/PNG; theo yêu cầu trước đó không chạy executable bị Group Policy chặn, không đổi policy và không cài PyAV khi chưa được IT cho phép. Chưa đo sai lệch hoặc độ trễ ứng dụng trên clip CFR/VFR/rotation. D-02, D-05 và go/no-go trên video xưởng tiếp tục mở.
 - **Bàn giao tài liệu:** thêm mục nhật ký này trong PR #1; GitHub chỉ nhận PROGRESS.md trong lần cập nhật này, còn code giao diện vẫn local. Chờ review giao diện và môi trường media được IT cho phép để chạy kiểm chứng thực tế.
+
+### 2026-11-20 — Thêm launcher local cho POC
+
+- **Yêu cầu / phạm vi:** tạo file run.cmd để khởi chạy app local từ thư mục gốc. Launcher chỉ phục vụ workspace POC và không đưa lên GitHub.
+- **Thay đổi local:** run.cmd kiểm tra Python 3.12 và dependency hiện có, đặt PYTHONPATH tới .deps, build frontend bằng npm.cmd, đặt vùng dữ liệu mặc định trong %LOCALAPPDATA%\MotionTrackingPOC nếu người dùng chưa cấu hình, rồi chạy Uvicorn tại 127.0.0.1:8000. Cập nhật README_POC_LOCAL.md cách khởi chạy và điều kiện media. Launcher không tự cài dependency, không gọi/tải FFmpeg hoặc FFprobe, không mở cổng LAN và không thay đổi Group Policy.
+- **Kiểm chứng thực tế:** rà soát tĩnh lệnh trong run.cmd theo hướng dẫn chạy hiện có; chưa chạy launcher hoặc server trong lượt này. Không có kiểm tra phát/seek video mới. Ghi nhận run.cmd và README_POC_LOCAL.md ở local; PR #1 chỉ nhận mục nhật ký này trong PROGRESS.md.
+- **Việc còn mở:** cần chạy run.cmd trên máy để xác nhận server khởi động; xử lý video vẫn cần FFmpeg/FFprobe được IT cho phép và cấu hình trong FFMPEG/FFPROBE. D-02, D-05 và go/no-go video xưởng tiếp tục mở.
