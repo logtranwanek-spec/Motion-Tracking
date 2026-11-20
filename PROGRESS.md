@@ -28,6 +28,14 @@ Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit ho
 
 ## Nhật ký
 
+### 2026-11-20 — Chẩn đoán POC không mở được video
+
+- **Yêu cầu / task:** kiểm tra lỗi mở video hiện tại, liên quan P0-05/P0-06.
+- **Kiểm tra ứng dụng:** port `127.0.0.1:8000` đang có FastAPI chạy. Các GET tới `/`, stylesheet, React, ReactDOM và bundle `/static/dist/app.js` đều trả HTTP 200; frontend/server khởi động và phục vụ asset được.
+- **Kết quả thực tế:** metadata xử lý gần nhất trong vùng dữ liệu local báo `status=FAILED`, `error.code=TOOL_FAILED`, Windows `WinError 2` (không tìm thấy executable). Không có `ffprobe`/`ffmpeg` trên PATH hiện tại và không có biến `FFPROBE`/`FFMPEG` trong shell hiện tại. Theo mã `backend/video.py`, bước đầu tiên gọi FFprobe để đọc PTS; vì vậy processing dừng trước khi tạo proxy, player không có video để phát. Sau bước đó, máy còn cần FFmpeg với encoder `libx264` và PNG theo runbook.
+- **Phạm vi đã kiểm tra:** đọc mã frontend/backend và `run.cmd`; chỉ đọc metadata trạng thái/lỗi, không mở/đọc nội dung video. Không chạy FFmpeg/FFprobe, không đổi Group Policy, không upload thêm video và không chạy test media.
+- **Việc còn mở:** để luồng cũ xử lý được cần bộ FFprobe/FFmpeg được IT cho phép, cấu hình đúng `FFPROBE`/`FFMPEG` và đủ capability. Tuy nhiên POC vẫn upload file đến FastAPI host, không đáp ứng yêu cầu user-local khi server nằm trên LAN; cần thay bằng media processor trên workstation trước khi dùng video thật. D-10 còn mở cho runtime; D-02, D-05 và go/no-go xưởng vẫn mở.
+
 ### 2026-11-20 — Yêu cầu lưu video trên workstation của user
 
 - **Yêu cầu / phạm vi:** user xác nhận video phải nằm trên máy của user, không lưu trên server; dùng luồng chọn file local của 15.CIOS làm tham khảo.
