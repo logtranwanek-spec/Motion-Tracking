@@ -8,15 +8,15 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 
 | Hạng mục | Trạng thái thực tế hiện tại |
 | --- | --- |
-| Repository | GitHub công khai; trước khởi tạo không có nhánh/commit, default branch trong metadata là `main`; clone local trống, remote `origin` trỏ đúng repo được giao. Tạo commit đầu tiên trên `main` theo yêu cầu. |
+| Repository | Repo GitHub công khai; PR #1 đang mở trên `docs/gate-1-poc-contract` theo `main`, Files changed hiện đúng 5 file Markdown root. Code, OpenAPI, cấu hình và test ở local. |
 | Bộ tài liệu | Chỉnh PR #1 để chỉ thay đổi 5 file root; nội dung Gate 1 được chuyển vào các file này. OpenAPI chi tiết và code ở workspace local. |
 | P0-01 | Chủ dự án xác nhận duyệt Gate 1 cho POC; các quyết định nghiệp vụ khác vẫn mở. |
-| P0-02 | Contract POC được duyệt trong Gate 1; contract MVP và ADR đầy đủ chưa hoàn tất. |
-| P0-03 | Chỉ khởi tạo Git/tài liệu; chưa có frontend/backend, dependency setup, README chạy app hoặc CI lint/test. Chưa hoàn tất task. |
-| P0-04 đến P0-08 | Đã bắt đầu code P0-05/P0-06 và kiểm tra kỹ thuật local; chưa xác minh pipeline FFprobe/H.264 đầy đủ. Chưa có SQLite schema/migration hoặc P0-07. |
+| P0-02 | Contract POC ban đầu được duyệt trong Gate 1; yêu cầu mới về video user-local làm contract media cũ không còn phù hợp. Contract API local-only cần cập nhật sau khi chốt D-10. |
+| P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; chưa hoàn tất setup/kiểm thử trên máy theo policy IT hoặc CI lint/test. |
+| P0-04 đến P0-08 | Có code POC local nhưng luồng hiện tại upload file vào FastAPI host; chưa đáp ứng yêu cầu video ở workstation user. Chưa xác minh pipeline PTS/proxy/frame end-to-end theo thiết kế mới. Chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
 | P0-10 | Mới có nguyên tắc sync/recovery trong kiến trúc, chưa thiết kế chi tiết được nghiệm thu hoặc triển khai recovery/sync. |
-| Phase 0 POC | **Code sơ bộ ở local; chưa xác minh demo đầy đủ hoặc benchmark POC, chưa go/no-go xưởng.** |
+| Phase 0 POC | **Code sơ bộ ở local; hiện còn upload video lên FastAPI host nên không dùng với video xưởng. Chưa xác minh demo theo yêu cầu user-local, chưa benchmark hoặc go/no-go xưởng.** |
 | Phase 1 MVP | **Chưa bắt đầu lập trình, chưa test ứng dụng, chưa pilot LAN hoặc UAT.** |
 | Phase 2–4 | AI, SOP, tích hợp và phân tích nâng cao chỉ là lộ trình đề xuất, chưa được triển khai. |
 
@@ -27,6 +27,14 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-20 — Yêu cầu lưu video trên workstation của user
+
+- **Yêu cầu / phạm vi:** user xác nhận video phải nằm trên máy của user, không lưu trên server; dùng luồng chọn file local của 15.CIOS làm tham khảo.
+- **Thay đổi chính:** cập nhật yêu cầu, kiến trúc và kế hoạch để original không upload lên API/server; proxy/index/frame cache nếu có cũng xử lý/lưu local theo phương án còn cần chốt. Bổ sung nguyên tắc cho agent. D-10 chỉ còn mở về runtime local, quyền truy cập/mở lại file, artifact/cache và contract metadata-only.
+- **Kiểm tra thực tế:** đọc `frontend/src/app.tsx` và `backend/app.py`; hiện UI gửi `multipart/form-data` tới `POST /api/poc/videos`, FastAPI nhận file và lưu tại vùng dữ liệu của host backend. Do đó khi backend chạy trên server LAN, video sẽ ở server; khi chạy `run.cmd` trên cùng PC, host backend chính là PC đó. Đọc `README_POC_LOCAL.md`; runbook hiện mô tả luồng upload này.
+- **Kết quả kiểm chứng:** kiểm tra tĩnh bằng tìm kiếm mã nguồn; không chạy app, media tools hoặc test trong lượt này. Chưa thay code; demo hiện tại chưa đáp ứng yêu cầu không upload. Đã thêm cảnh báo vào runbook local để không dùng video nhạy cảm/xưởng với luồng cũ.
+- **Việc còn mở:** chốt/đánh giá D-10 và thay media API/OpenAPI, worker và player theo hướng workstation-local; chứng minh bằng Network capture rằng không gửi video bytes/path lên server; kiểm thử PTS, VFR, rotation, exact-frame, lưu/mở lại. D-02, D-05 và go/no-go video xưởng vẫn mở.
 
 ### 2026-11-20 — Rà soát tham chiếu Time Study có phát video
 

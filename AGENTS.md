@@ -4,7 +4,7 @@
 
 Repo công khai. Trước khi sửa, đọc yêu cầu người dùng hiện tại, file này và các phần liên quan trong:
 
-- [PROJECT_REQUIREMENT.md](PROJECT_REQUIREMENT.md): nghiệp vụ, ràng buộc, acceptance criteria và sổ quyết định D-01–D-09.
+- [PROJECT_REQUIREMENT.md](PROJECT_REQUIREMENT.md): nghiệp vụ, ràng buộc, acceptance criteria và sổ quyết định D-01–D-10.
 - [ARCHITECTURE.md](ARCHITECTURE.md): thiết kế, timestamp/source mapping, storage và phân biệt POC/MVP.
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): task ID, đầu ra, phụ thuộc và tiêu chí nghiệm thu.
 - [PROGRESS.md](PROGRESS.md): hiện trạng, việc đã làm, kiểm chứng và phần còn mở.
@@ -22,11 +22,13 @@ Repo công khai. Trước khi sửa, đọc yêu cầu người dùng hiện t�
 ## 3. Bất biến kỹ thuật và dữ liệu
 
 - Lắp ráp thủ công; một operator tại một workstation trong một video. Nguồn điện thoại/camera, truy cập browser qua LAN.
-- SQLite duy nhất nằm trên ổ local server, ngoài OneDrive/SharePoint sync và ổ mạng/NAS; client truy cập API. API và worker DB cùng host, transaction ngắn, foreign keys, WAL và busy timeout theo kiến trúc.
-- Original bất biến; proxy/frame cache/video làm việc lưu local ngoài repo. Annotation dùng microsecond nguyên và frame/boundary refs của source; VFR không dùng `frame/FPS` hoặc proxy time làm chuẩn.
+- SQLite duy nhất nằm trên ổ local server, ngoài OneDrive/SharePoint sync và ổ mạng/NAS; chỉ lưu dữ liệu nghiệp vụ/metadata được phép. API và worker DB cùng host, transaction ngắn, foreign keys, WAL và busy timeout theo kiến trúc.
+- Video gốc phải ở máy/workstation của user, giữ tại vị trí user chọn và không gửi bytes video lên server LAN. Không lưu original trên server, SharePoint hoặc NAS theo mặc định. Proxy/frame cache/index và xử lý media cũng phải ở workstation nếu được tạo; không gửi đường dẫn local/File handle lên API. Cách thực hiện, cấp quyền lại file và khôi phục sau khi đóng browser còn mở tại D-10.
+- POC local hiện có vẫn upload file vào FastAPI host; không coi nó đáp ứng yêu cầu user-local và không dùng video xưởng/dữ liệu nhạy cảm với luồng này. Chỉ kiểm tra luồng mới sau khi network evidence xác nhận không có media bytes đi lên server.
+- Annotation dùng microsecond nguyên và frame/boundary refs của source; VFR không dùng `frame/FPS` hoặc proxy time làm chuẩn.
 - Bảo vệ `start < end`, containment, template version, occurrence lặp, exclusion reason, immutable approved revision, audit và optimistic concurrency. Đọc kỹ quy tắc timestamp và terminal boundary trong kiến trúc trước sửa player hoặc duration.
 - Không cộng trùng parallel work, không suy Standard Time từ cycle nhanh nhất. AI chỉ gợi ý, IE xác nhận số liệu chính thức.
-- SharePoint phụ thuộc D-03 và phê duyệt IT. Local-only phải hoạt động; không chuyển live SQLite lên SharePoint hoặc NAS.
+- SharePoint phụ thuộc D-03 và phê duyệt IT. Local-only phải hoạt động; không đồng bộ video gốc/proxy lên SharePoint nếu chưa có phê duyệt riêng, và không chuyển live SQLite lên SharePoint hoặc NAS.
 
 ## 4. Cập nhật tài liệu trong mọi lần làm việc
 
