@@ -12,7 +12,7 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 | Bộ tài liệu | Chỉnh PR #1 để chỉ thay đổi 5 file root; nội dung Gate 1 được chuyển vào các file này. OpenAPI chi tiết và code ở workspace local. |
 | P0-01 | Chủ dự án xác nhận duyệt Gate 1 cho POC; các quyết định nghiệp vụ khác vẫn mở. |
 | P0-02 | Contract POC ban đầu được duyệt trong Gate 1; yêu cầu mới về video user-local làm contract media cũ không còn phù hợp. Contract API local-only cần cập nhật sau khi chốt D-10. |
-| P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; thêm route và favicon SVG để xử lý request `/favicon.ico`. Chưa kiểm tra setup/HTTP runtime trên máy theo policy IT hoặc CI lint/test. |
+| P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; route/favicon đã được nạp vào server thử nghiệm và GET `/` cùng `/favicon.ico` trả 200. Chưa hoàn tất setup, CI lint/test hoặc kiểm chứng video. |
 | D-10 / policy runtime | Chủ dự án chọn browser-native local preview làm thử nghiệm đầu vì không cần tải/cài media engine. Frontend đã bỏ POST video; raw PTS, VFR exact-frame, proxy, lưu phép đo và network evidence chưa xác minh. D-10 vẫn mở. |
 | P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL và scrub theo giây. Standalone HTML có thể thêm breakpoint tại playhead, chia timeline thành đoạn logic/browser-time và xuất/nhập JSON; chưa có proxy/index, source frame-step hay phép đo PTS. Backend còn legacy upload endpoints, không expose. Chưa kiểm tra browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
@@ -28,6 +28,14 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-21 — Khởi động server và xác nhận favicon
+
+- **Yêu cầu / phạm vi:** khởi động server local để áp dụng sửa lỗi favicon và kiểm tra log CMD.
+- **Trạng thái:** server đang chạy tại `http://127.0.0.1:8000` trong phiên này; chỉ bind loopback, không mở LAN.
+- **Thay đổi chính:** dùng Python 3.12 hiện có với dependency đã có trong `.deps`, đặt `PYTHONPATH` tới thư mục đó rồi chạy `uvicorn backend.app:app --host 127.0.0.1 --port 8000`. Không tải/cài package, không chạy `run.cmd`/build frontend trong lượt này.
+- **Kiểm chứng thực tế:** `GET /` → HTTP 200 và HTML có link `/static/favicon.svg`; `GET /favicon.ico` → HTTP 200, `Content-Type: image/svg+xml`, 370 bytes. Log Uvicorn ghi cả hai request là `200 OK`; lỗi favicon 404 đã hết trong tiến trình mới.
+- **Việc còn mở:** server gắn với phiên terminal hiện tại; khi phiên này dừng thì server cũng dừng. Chưa kiểm tra video, media processing, LAN access hoặc POC E2E. Code/config giữ local; chỉ mục PROGRESS được cập nhật trên PR tài liệu.
 
 ### 2026-11-21 — Sửa request favicon trả 404
 
