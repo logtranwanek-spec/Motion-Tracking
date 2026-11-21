@@ -12,7 +12,7 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 | Bộ tài liệu | Chỉnh PR #1 để chỉ thay đổi 5 file root; nội dung Gate 1 được chuyển vào các file này. OpenAPI chi tiết và code ở workspace local. |
 | P0-01 | Chủ dự án xác nhận duyệt Gate 1 cho POC; các quyết định nghiệp vụ khác vẫn mở. |
 | P0-02 | Contract POC ban đầu được duyệt trong Gate 1; yêu cầu mới về video user-local làm contract media cũ không còn phù hợp. Contract API local-only cần cập nhật sau khi chốt D-10. |
-| P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; chưa hoàn tất setup/kiểm thử trên máy theo policy IT hoặc CI lint/test. |
+| P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; thêm route và favicon SVG để xử lý request `/favicon.ico`. Chưa kiểm tra setup/HTTP runtime trên máy theo policy IT hoặc CI lint/test. |
 | D-10 / policy runtime | Chủ dự án chọn browser-native local preview làm thử nghiệm đầu vì không cần tải/cài media engine. Frontend đã bỏ POST video; raw PTS, VFR exact-frame, proxy, lưu phép đo và network evidence chưa xác minh. D-10 vẫn mở. |
 | P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL và scrub theo giây. Standalone HTML có thể thêm breakpoint tại playhead, chia timeline thành đoạn logic/browser-time và xuất/nhập JSON; chưa có proxy/index, source frame-step hay phép đo PTS. Backend còn legacy upload endpoints, không expose. Chưa kiểm tra browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
@@ -28,6 +28,14 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-21 — Sửa request favicon trả 404
+
+- **Yêu cầu / phạm vi:** xử lý log FastAPI báo `GET /favicon.ico` trả 404 khi trình duyệt tìm biểu tượng tab.
+- **Trạng thái:** đã thêm xử lý vào code local; chưa chạy server/browser để xác nhận HTTP runtime.
+- **Thay đổi chính:** thêm route `GET /favicon.ico` phục vụ `frontend/favicon.svg` với MIME `image/svg+xml`; thêm khai báo favicon trực tiếp vào `frontend/index.html`. Không thay đổi upload/media route, SQLite hay kiến trúc xử lý video.
+- **Kiểm chứng thực tế:** rà soát tĩnh route, asset path và liên kết HTML; `git diff --check` không báo lỗi. Chưa gửi request HTTP hoặc chạy app/test trong lượt này.
+- **Việc còn mở:** server khởi chạy bằng `run.cmd` không bật `--reload`, nên cần dừng và khởi động lại bằng phương thức IT cho phép để route mới được nạp; sau đó xác nhận `GET /favicon.ico` trả 200 và `Content-Type: image/svg+xml`. Code/favicon giữ local; chỉ nhật ký Progress được cập nhật trong PR tài liệu.
 
 ### 2026-11-21 — Bổ sung thao tác breakpoint theo 15.CIOS
 
