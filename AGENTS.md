@@ -22,6 +22,7 @@ Repo công khai. Trước khi sửa, đọc yêu cầu người dùng hiện t�
 ## 3. Bất biến kỹ thuật và dữ liệu
 
 - Lắp ráp thủ công; một operator tại một workstation trong một video. Nguồn điện thoại/camera, truy cập browser qua LAN.
+- Người dùng xác nhận policy công ty không cho tải phần mềm từ Internet hoặc chạy file `.exe` tải về. Không hướng dẫn né policy, không tự tải/cài/chạy binary; chỉ dùng browser/thành phần Windows hiện có hoặc runtime được IT triển khai/phê duyệt. Mọi thư viện JavaScript được đóng gói trong ứng dụng cũng cần qua quy trình phê duyệt phần mềm của công ty.
 - SQLite duy nhất nằm trên ổ local server, ngoài OneDrive/SharePoint sync và ổ mạng/NAS; chỉ lưu dữ liệu nghiệp vụ/metadata được phép. API và worker DB cùng host, transaction ngắn, foreign keys, WAL và busy timeout theo kiến trúc.
 - Video gốc phải ở máy/workstation của user, giữ tại vị trí user chọn và không gửi bytes video lên server LAN. Không lưu original trên server, SharePoint hoặc NAS theo mặc định. Proxy/frame cache/index và xử lý media cũng phải ở workstation nếu được tạo; không gửi đường dẫn local/File handle lên API. Cách thực hiện, cấp quyền lại file và khôi phục sau khi đóng browser còn mở tại D-10.
 - POC local hiện có vẫn upload file vào FastAPI host; không coi nó đáp ứng yêu cầu user-local và không dùng video xưởng/dữ liệu nhạy cảm với luồng này. Chỉ kiểm tra luồng mới sau khi network evidence xác nhận không có media bytes đi lên server.

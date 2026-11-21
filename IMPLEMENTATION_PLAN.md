@@ -17,6 +17,8 @@ Chủ dự án xác nhận duyệt Gate 1 và đã giao gói lập trình đầu
 
 Ngày 2026-11-20, chủ dự án bổ sung yêu cầu source video phải ở workstation user và không upload lên server LAN, theo tham khảo 15.CIOS. Điều này thay đổi ranh giới media đã mô tả trong Gate 1; quy tắc timestamp `[Start, End)` vẫn giữ. Code POC hiện tại còn upload file vào host của FastAPI, nên chưa phù hợp và không được coi là đáp ứng storage requirement. Cần giải quyết D-10/local media processor và cập nhật OpenAPI local trước khi tiếp tục luồng P0-05/06 theo thiết kế mới.
 
+Ngày 2026-11-21, chủ dự án xác nhận user không thể tải phần mềm từ Internet hoặc chạy file `.exe` do policy công ty. Không được tìm cách né policy. P0-03/P0-05/P0-06 phải ưu tiên browser/Windows capability có sẵn; thư viện JS đi cùng ứng dụng hoặc runtime cục bộ chỉ dùng sau khi IT/security cho phép. D-10 và feasibility frame/PTS cần được đánh giá theo ràng buộc này.
+
 SharePoint không chặn MVP local-only nếu IT chưa duyệt hoặc kết luận không khả thi. Những phần thuộc SharePoint trong P0-10 được giữ ở mức thiết kế có điều kiện; recovery/backup local vẫn cần thực hiện.
 
 ## 2. Gói lập trình đầu: P0-05, P0-06, P0-08
@@ -32,7 +34,7 @@ Phần tính hiệu hai mốc là tính năng tối thiểu trong demo P0-06 đ�
 
 ### Phụ thuộc và đầu ra
 
-Đầu vào: Gate 1 timestamp/boundary P0-02, quyết định/feasibility D-10 về local media processor và persistence, môi trường được IT cho phép, fixtures tổng hợp có ground truth. Video xưởng hợp lệ theo D-05 và ngưỡng D-02 cần trước kết luận go/no-go thực tế; không dùng sự thiếu vắng chúng để tự đặt ngưỡng.
+Đầu vào: Gate 1 timestamp/boundary P0-02, quyết định/feasibility D-10 về local media processor và persistence, runtime/browser được IT cho phép (không tải software hoặc chạy `.exe` trái policy), fixtures tổng hợp có ground truth. Video xưởng hợp lệ theo D-05 và ngưỡng D-02 cần trước kết luận go/no-go thực tế; không dùng sự thiếu vắng chúng để tự đặt ngưỡng.
 
 Đầu ra cần có: demo chạy được; hướng dẫn chạy và dependency pin khi lập trình; metadata/index/mapping manifest; UI Start/End/duration; báo cáo benchmark với test đã chạy, sai lệch, known limitations và khuyến nghị gate. Fixture, code và bằng chứng chi tiết giữ local; chỉ tóm tắt kết quả phù hợp công khai trong 5 file được phép trên GitHub.
 
