@@ -15,9 +15,11 @@ Ngày khởi tạo: 2026-11-18 (Asia/Bangkok). **Chỉ lập kế hoạch; chưa
 
 Chủ dự án xác nhận duyệt Gate 1 và đã giao gói lập trình đầu; luồng và contract POC được tóm tắt trong [kiến trúc](ARCHITECTURE.md). D-02/D-05 vẫn mở. Code, OpenAPI và test nằm local; GitHub chỉ nhận 5 file root theo [AGENTS.md](AGENTS.md).
 
-Ngày 2026-11-20, chủ dự án bổ sung yêu cầu source video phải ở workstation user và không upload lên server LAN, theo tham khảo 15.CIOS. Điều này thay đổi ranh giới media đã mô tả trong Gate 1; quy tắc timestamp `[Start, End)` vẫn giữ. Code POC hiện tại còn upload file vào host của FastAPI, nên chưa phù hợp và không được coi là đáp ứng storage requirement. Cần giải quyết D-10/local media processor và cập nhật OpenAPI local trước khi tiếp tục luồng P0-05/06 theo thiết kế mới.
+Ngày 2026-11-20, chủ dự án bổ sung yêu cầu source video phải ở workstation user và không upload lên server LAN, theo tham khảo 15.CIOS. Điều này thay đổi ranh giới media đã mô tả trong Gate 1; quy tắc timestamp `[Start, End)` vẫn giữ. Tại thời điểm đó POC còn upload file vào FastAPI host.
 
 Ngày 2026-11-21, chủ dự án xác nhận user không thể tải phần mềm từ Internet hoặc chạy file `.exe` do policy công ty. Không được tìm cách né policy. P0-03/P0-05/P0-06 phải ưu tiên browser/Windows capability có sẵn; thư viện JS đi cùng ứng dụng hoặc runtime cục bộ chỉ dùng sau khi IT/security cho phép. D-10 và feasibility frame/PTS cần được đánh giá theo ràng buộc này.
+
+Trong yêu cầu tiếp theo cùng ngày, chủ dự án giao chọn và thực hành phương án khả thi nhất. Browser-native local preview được chọn thử nghiệm. Frontend nay không POST video; nó phát Blob URL, cho phép browser controls và tua theo giây, đọc browser frame telemetry. Frame-step exact, Start/End, source PTS/index, proxy và persistence chưa triển khai; backend còn legacy upload endpoints và không được expose. Gói này hoàn tất feasibility slice, không hoàn tất P0-05/P0-06/P0-08.
 
 SharePoint không chặn MVP local-only nếu IT chưa duyệt hoặc kết luận không khả thi. Những phần thuộc SharePoint trong P0-10 được giữ ở mức thiết kế có điều kiện; recovery/backup local vẫn cần thực hiện.
 
