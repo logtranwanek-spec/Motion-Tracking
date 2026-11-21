@@ -12,12 +12,12 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 | Bộ tài liệu | Chỉnh PR #1 để chỉ thay đổi 5 file root; nội dung Gate 1 được chuyển vào các file này. OpenAPI chi tiết và code ở workspace local. |
 | P0-01 | Chủ dự án xác nhận duyệt Gate 1 cho POC; các quyết định nghiệp vụ khác vẫn mở. |
 | P0-02 | Contract POC ban đầu được duyệt trong Gate 1; yêu cầu mới về video user-local làm contract media cũ không còn phù hợp. Contract API local-only cần cập nhật sau khi chốt D-10. |
-| P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; route/favicon đã được nạp vào server thử nghiệm và GET `/` cùng `/favicon.ico` trả 200. Chưa hoàn tất setup, CI lint/test hoặc kiểm chứng video. |
+| P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; server thử nghiệm đang chạy loopback, GET `/` phục vụ preview và `/favicon.ico` trả 200. Chưa hoàn tất setup, CI lint/test hoặc kiểm chứng video. |
 | D-10 / policy runtime | Chủ dự án chọn browser-native local preview làm thử nghiệm đầu vì không cần tải/cài media engine. Frontend đã bỏ POST video; raw PTS, VFR exact-frame, proxy, lưu phép đo và network evidence chưa xác minh. D-10 vẫn mở. |
-| P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL và scrub theo giây. Standalone HTML có thể thêm breakpoint tại playhead, chia timeline thành đoạn logic/browser-time và xuất/nhập JSON; chưa có proxy/index, source frame-step hay phép đo PTS. Backend còn legacy upload endpoints, không expose. Chưa kiểm tra browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
+| P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL, tua, đặt Start/End nháp theo browser time, tính duration, thêm breakpoint/chia đoạn và xuất/nhập JSON. Frame-step source, raw PTS, proxy/index và phép đo POC theo contract chưa làm; backend còn legacy upload endpoints, không expose. Chưa kiểm tra tương tác browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
 | P0-10 | Mới có nguyên tắc sync/recovery trong kiến trúc, chưa thiết kế chi tiết được nghiệm thu hoặc triển khai recovery/sync. |
-| Phase 0 POC | **Browser-only preview và UI breakpoint/đoạn nháp đã viết local nhưng chưa chạy/xác minh. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
+| Phase 0 POC | **Browser-only preview có UI playback, breakpoint và Start/End/duration nháp theo browser time; HTTP route đã kiểm tra nhưng chưa thao tác qua browser/video. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
 | Phase 1 MVP | **Chưa bắt đầu lập trình, chưa test ứng dụng, chưa pilot LAN hoặc UAT.** |
 | Phase 2–4 | AI, SOP, tích hợp và phân tích nâng cao chỉ là lộ trình đề xuất, chưa được triển khai. |
 
@@ -28,6 +28,14 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-21 — Mở thao tác Start/End nháp trên preview
+
+- **Yêu cầu / phạm vi:** xử lý phản hồi người dùng rằng trang web vẫn không thao tác được.
+- **Trạng thái:** cập nhật preview local và route gốc đang chạy; HTTP đã xác nhận nhưng chưa thao tác bằng browser hoặc video.
+- **Thay đổi chính:** route `/` và `/app` cùng phục vụ preview để không mở nhầm React shell cũ. Preview có thể mở file local, playback/tua và breakpoint. Bật `Đặt Start`, `Đặt End`, kiểm tra `End > Start`, tính duration theo browser time; thêm các mốc đo vào JSON nháp để mở lại sau khi chọn đúng file. Frame-step chính xác vẫn khóa vì chưa có source-frame index/PTS.
+- **Kiểm chứng thực tế:** sau khi khởi động lại, `GET http://127.0.0.1:8000/` và `/app` đều trả 200, cùng tiêu đề `Motion Tracking | Local Browser Preview` và có control breakpoint, Start/End; `/favicon.ico` trả 200 với MIME `image/svg+xml`. Server đang bind `127.0.0.1:8000` bởi Python 3.12 PID 18924. Chưa chạy browser automation, chưa mở clip hoặc kiểm thử click/save/reopen; chưa kiểm tra media/network.
+- **Việc còn mở:** người dùng mở `http://127.0.0.1:8000/`, chọn MP4/MOV, pause để đặt mốc; nếu vẫn không hoạt động cần biết URL đang mở và lỗi hiển thị. Browser-time JSON chỉ là bản nháp, file identity chỉ so tên/kích thước/ngày sửa. PTS/frame-step, VFR/rotation, D-10, D-02, D-05 và go/no-go video xưởng vẫn mở. Code/config/test giữ local; chỉ tài liệu Markdown được phép cập nhật trên PR.
 
 ### 2026-11-21 — Khởi động server và xác nhận favicon
 
