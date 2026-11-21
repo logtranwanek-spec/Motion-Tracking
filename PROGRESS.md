@@ -14,10 +14,10 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 | P0-02 | Contract POC ban đầu được duyệt trong Gate 1; yêu cầu mới về video user-local làm contract media cũ không còn phù hợp. Contract API local-only cần cập nhật sau khi chốt D-10. |
 | P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; server thử nghiệm đang chạy loopback, GET `/` phục vụ preview và `/favicon.ico` trả 200. Chưa hoàn tất setup, CI lint/test hoặc kiểm chứng video. |
 | D-10 / policy runtime | Chủ dự án chọn browser-native local preview làm thử nghiệm đầu vì không cần tải/cài media engine. Frontend đã bỏ POST video; raw PTS, VFR exact-frame, proxy, lưu phép đo và network evidence chưa xác minh. D-10 vẫn mở. |
-| P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL, tua, đặt Start/End nháp theo browser time, tính duration, thêm breakpoint/chia đoạn và xuất/nhập JSON. Frame-step source, raw PTS, proxy/index và phép đo POC theo contract chưa làm; backend còn legacy upload endpoints, không expose. Chưa kiểm tra tương tác browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
+| P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL, tua, đặt Start/End nháp, thêm breakpoint cả khi phát, xem timeline màu, click để tua/xóa mốc, chia đoạn và xuất/nhập JSON. Frame-step source, raw PTS, proxy/index và phép đo POC theo contract chưa làm; backend còn legacy upload endpoints, không expose. Chưa kiểm tra tương tác browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
 | P0-10 | Mới có nguyên tắc sync/recovery trong kiến trúc, chưa thiết kế chi tiết được nghiệm thu hoặc triển khai recovery/sync. |
-| Phase 0 POC | **Browser-only preview có UI playback, breakpoint và Start/End/duration nháp theo browser time; HTTP route đã kiểm tra nhưng chưa thao tác qua browser/video. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
+| Phase 0 POC | **Browser-only preview có playback, Start/End nháp, breakpoint trong lúc phát và timeline màu; HTTP route đã kiểm tra nhưng tương tác browser/video chưa xác nhận. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
 | Phase 1 MVP | **Chưa bắt đầu lập trình, chưa test ứng dụng, chưa pilot LAN hoặc UAT.** |
 | Phase 2–4 | AI, SOP, tích hợp và phân tích nâng cao chỉ là lộ trình đề xuất, chưa được triển khai. |
 
@@ -28,6 +28,14 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-21 — Thêm breakpoint khi đang phát và timeline trực quan
+
+- **Yêu cầu / phạm vi:** cho phép đặt breakpoint không cần pause và thêm thanh timeline phân đoạn dưới player theo tham khảo 15.CIOS.
+- **Trạng thái:** cập nhật HTML/CSS/JavaScript preview local; chưa kiểm thử tương tác trực tiếp trên browser/video và chưa nghiệm thu P0-05/P0-06/P0-08.
+- **Thay đổi chính:** nút thêm breakpoint bật khi video có metadata kể cả đang phát; thêm timeline màu với process segments, breakpoint/time labels, playhead; click timeline để seek và click nhãn breakpoint để xóa. Cập nhật hướng dẫn và mô tả preview. Giữ mốc browser-time draft, luật chống trùng 80 ms chỉ là hành vi tham khảo; không đổi D-02/D-05 hoặc kết luận xưởng.
+- **Kiểm chứng thực tế:** `GET http://127.0.0.1:8000/` và `/app` đều trả 200; HTML trả về có timeline, nút thêm breakpoint, nhánh bật nút khi metadata sẵn sàng, handler seek và xóa mốc. `git diff --check` đạt. Chưa chạy Edge/Chrome, chưa mở video hay xác minh click/UI thực tế.
+- **Việc còn mở:** xác minh trực quan trên browser/video nếu được phép; kiểm tra seek/playhead và xóa marker bằng thao tác thật. Timeline không phải source PTS/frame index; frame-step, VFR/rotation, network capture, D-10, D-02, D-05 và go/no-go video xưởng vẫn mở. Code/config/test giữ local; chỉ các Markdown được phép lên GitHub.
 
 ### 2026-11-21 — Mở thao tác Start/End nháp trên preview
 
