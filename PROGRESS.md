@@ -14,10 +14,10 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 | P0-02 | Contract POC ban đầu được duyệt trong Gate 1; yêu cầu mới về video user-local làm contract media cũ không còn phù hợp. Contract API local-only cần cập nhật sau khi chốt D-10. |
 | P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; chưa hoàn tất setup/kiểm thử trên máy theo policy IT hoặc CI lint/test. |
 | D-10 / policy runtime | Chủ dự án chọn browser-native local preview làm thử nghiệm đầu vì không cần tải/cài media engine. Frontend đã bỏ POST video; raw PTS, VFR exact-frame, proxy, lưu phép đo và network evidence chưa xác minh. D-10 vẫn mở. |
-| P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL và scrub theo giây. Standalone HTML có đoạn logic nháp/browser-time và JSON; chưa có proxy/index, source frame-step hay phép đo PTS. Backend còn legacy upload endpoints, không expose. Chưa kiểm tra browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
+| P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL và scrub theo giây. Standalone HTML có thể thêm breakpoint tại playhead, chia timeline thành đoạn logic/browser-time và xuất/nhập JSON; chưa có proxy/index, source frame-step hay phép đo PTS. Backend còn legacy upload endpoints, không expose. Chưa kiểm tra browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
 | P0-10 | Mới có nguyên tắc sync/recovery trong kiến trúc, chưa thiết kế chi tiết được nghiệm thu hoặc triển khai recovery/sync. |
-| Phase 0 POC | **Browser-only preview và UI đoạn nháp đã viết local nhưng chưa chạy/xác minh. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
+| Phase 0 POC | **Browser-only preview và UI breakpoint/đoạn nháp đã viết local nhưng chưa chạy/xác minh. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
 | Phase 1 MVP | **Chưa bắt đầu lập trình, chưa test ứng dụng, chưa pilot LAN hoặc UAT.** |
 | Phase 2–4 | AI, SOP, tích hợp và phân tích nâng cao chỉ là lộ trình đề xuất, chưa được triển khai. |
 
@@ -28,6 +28,14 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-21 — Bổ sung thao tác breakpoint theo 15.CIOS
+
+- **Yêu cầu / phạm vi:** sửa preview vì bản trước chỉ đặt Start/End cho từng đoạn, chưa có thao tác thêm breakpoint độc lập như 15.CIOS.
+- **Trạng thái:** đã cập nhật standalone HTML local để thêm breakpoint ở browser playhead và tạo các đoạn liền kề; chưa chạy trên browser/video.
+- **Thay đổi chính:** người dùng tạm dừng tại ranh giới, thêm breakpoint có nhãn tùy chọn; danh sách sắp xếp theo thời gian, cho tua tới/xóa mốc; bấm chia để tạo đoạn từ 0 → các breakpoint → browser duration; đổi nhãn đoạn, phát lại, xuất/nhập JSON. Mốc cách nhau dưới 80 ms hoặc cách biên clip dưới 80 ms bị từ chối theo hành vi tham khảo trong mã 15.CIOS đã đọc ngày 2026-11-20. Đây chỉ là quy tắc chống trùng UI, không phải ngưỡng độ chính xác D-02. Đoạn chỉ là khoảng logic, không cắt video. Cập nhật README và PROJECT_REQUIREMENT/ARCHITECTURE/IMPLEMENTATION_PLAN; D-02/D-05/go-no-go vẫn mở.
+- **Kiểm chứng thực tế:** rà soát tĩnh handler thêm/xóa/sắp xếp breakpoint, chia đoạn, validation khoảng cách, JSON import/export và cập nhật tài liệu; `git diff --check` đạt. Chưa chạy browser, không mở clip, chưa kiểm tra phát lại/JSON runtime, không benchmark hoặc network capture; không chạy executable/đổi policy.
+- **Việc còn mở:** kiểm tra tương tác trên browser và video được phép; xác minh breakpoint theo PTS/frame gốc trước mọi phép đo chính thức. 80 ms là hành vi tham khảo có thể cần chủ dự án duyệt nếu muốn áp dụng lâu dài. File video xuất vật lý chưa hỗ trợ; D-10, D-02, D-05 và go/no-go video xưởng vẫn mở. Code/config/test/HTML giữ local; GitHub chỉ nhận đúng 5 Markdown root.
 
 ### 2026-11-20 — Kiểm tra engine có sẵn trên Windows
 
