@@ -14,10 +14,10 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 | P0-02 | Contract POC ban đầu được duyệt trong Gate 1; yêu cầu mới về video user-local làm contract media cũ không còn phù hợp. Contract API local-only cần cập nhật sau khi chốt D-10. |
 | P0-03 | Đã có skeleton frontend/backend, `run.cmd`, README và test ở local; server thử nghiệm đang chạy loopback, GET `/` phục vụ preview và `/favicon.ico` trả 200. Chưa hoàn tất setup, CI lint/test hoặc kiểm chứng video. |
 | D-10 / policy runtime | Chủ dự án chọn browser-native local preview làm thử nghiệm đầu vì không cần tải/cài media engine. Frontend đã bỏ POST video; raw PTS, VFR exact-frame, proxy, lưu phép đo và network evidence chưa xác minh. D-10 vẫn mở. |
-| P0-04 đến P0-08 | Browser feasibility slice local mở/phát file Blob URL, tua, đặt Start/End nháp, thêm breakpoint cả khi phát, xem timeline màu, click để tua/xóa mốc, chia đoạn và xuất/nhập JSON. Frame-step source, raw PTS, proxy/index và phép đo POC theo contract chưa làm; backend còn legacy upload endpoints, không expose. Chưa kiểm tra tương tác browser/video/benchmark; chưa có SQLite schema/migration hoặc P0-07. |
+| P0-04 đến P0-08 | Browser feasibility slice local mở/phát video, breakpoint trong lúc phát, timeline màu, Start/End draft; thêm Canvas filter cho ảnh local hoặc frame browser và xuất PNG. Frame-step source, raw PTS, proxy/index và phép đo POC theo contract chưa làm; backend còn legacy upload endpoints, không expose. Chưa kiểm tra tương tác browser/video/ảnh hoặc benchmark; chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
 | P0-10 | Mới có nguyên tắc sync/recovery trong kiến trúc, chưa thiết kế chi tiết được nghiệm thu hoặc triển khai recovery/sync. |
-| Phase 0 POC | **Browser-only preview có playback, Start/End nháp, breakpoint trong lúc phát và timeline màu; HTTP route đã kiểm tra nhưng tương tác browser/video chưa xác nhận. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
+| Phase 0 POC | **Browser-only preview có playback, breakpoint live/timeline và image filters Canvas; HTTP route đã kiểm tra nhưng tương tác browser/video/ảnh chưa xác nhận. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
 | Phase 1 MVP | **Chưa bắt đầu lập trình, chưa test ứng dụng, chưa pilot LAN hoặc UAT.** |
 | Phase 2–4 | AI, SOP, tích hợp và phân tích nâng cao chỉ là lộ trình đề xuất, chưa được triển khai. |
 
@@ -28,6 +28,14 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-24 — Thêm xử lý ảnh cục bộ bằng Canvas
+
+- **Yêu cầu / phạm vi:** thêm xử lý ảnh cho preview Motion Tracking trên máy user.
+- **Trạng thái:** đã thêm UI và luồng xử lý ảnh trong workspace local; chưa kiểm thử click bằng browser hoặc ảnh/video thật.
+- **Thay đổi chính:** cho mở PNG/JPEG/WebP hoặc chụp frame video hiện đang hiển thị; Canvas hiển thị song song ảnh gốc và ảnh đã xử lý, chỉnh sáng/tương phản/bão hòa/thang xám, reset filter và tải PNG. Giới hạn ảnh 12 megapixel; giữ nguồn không sửa, không gửi API. Cập nhật PROJECT_REQUIREMENT/ARCHITECTURE/IMPLEMENTATION_PLAN và README local.
+- **Kiểm chứng thực tế:** `GET /` và `/app` trả HTTP 200; mỗi trang có đủ 10 dấu hiệu kiểm tra tĩnh về file input, nút capture, hai canvas, filter, giới hạn megapixel và xuất blob. `git diff --check` đạt; quét 947 dòng HTML không thấy trailing whitespace. Chưa có kết quả Canvas runtime, không mở ảnh/video hoặc click UI.
+- **Việc còn mở:** kiểm tra thao tác thật trên Edge/Chrome với một ảnh tĩnh/clip được phép; xác minh bộ lọc, PNG tải xuống, capture frame và giới hạn bộ nhớ. Ảnh từ video chỉ là browser-rendered frame, chưa gắn source PTS/frame identity. D-10, D-02, D-05, source frame-step và go/no-go video xưởng vẫn mở; code/config/test/media giữ local.
 
 ### 2026-11-21 — Thêm breakpoint khi đang phát và timeline trực quan
 
