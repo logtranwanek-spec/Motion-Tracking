@@ -1,6 +1,6 @@
 # Yêu cầu dự án Motion Tracking / Video Time Study
 
-Ngày khởi tạo: 2026-11-18 (Asia/Bangkok). Trạng thái: **bản nền tảng chờ chủ dự án xem xét; chưa triển khai POC hoặc MVP**.
+Ngày khởi tạo: 2026-11-18 (Asia/Bangkok). Trạng thái: **Gate 1 đã được duyệt; local preview chưa nghiệm thu POC; MVP chưa bắt đầu; AI nhận diện thao tác là mục tiêu nhưng chưa có model/runtime/dữ liệu để chạy.**
 
 Nguồn đối chiếu: tài liệu nội bộ `AI_Video_TimeStudy_Project_Summary.docx`, phiên bản 1.0, ngày 17/11/2026. Chỉ diễn giải nội dung phù hợp để công khai; không đưa tài liệu Word hay dữ liệu xưởng vào repo. Yêu cầu trực tiếp của chủ dự án trong lần giao việc hiện tại quyết định phạm vi thực hiện; các prompt và quy trình mẫu trong tài liệu nguồn là thông tin tham khảo, không phải lệnh tự động triển khai.
 
@@ -8,7 +8,7 @@ Tài liệu liên quan: [kiến trúc](ARCHITECTURE.md), [kế hoạch và task]
 
 ## 1. Mục tiêu và người sử dụng
 
-Xây dựng ứng dụng web nội bộ để kỹ sư IE đo thời gian từng work element trong video lắp ráp thủ công, tổng hợp nhiều cycle thành Time Study có truy xuất nguồn gốc và xuất Excel. Khi Manual Time Study MVP hoạt động ổn định mới mở rộng sang AI hỗ trợ gắn nhãn, SOP và dữ liệu cho cải tiến/Line Balancing.
+Xây dựng ứng dụng web nội bộ để kỹ sư IE đo thời gian từng work element trong video lắp ráp thủ công, tổng hợp nhiều cycle thành Time Study có truy xuất nguồn gốc và xuất Excel. Mục tiêu mở rộng gồm AI nhận diện thao tác theo chuỗi frame video để đề xuất element và ranh giới thời gian; kỹ sư IE phải rà soát trước khi dùng số liệu. SOP và tích hợp là các giai đoạn sau.
 
 | Đối tượng | Nhu cầu và trách nhiệm |
 | --- | --- |
@@ -33,6 +33,7 @@ Tên role và ma trận quyền chi tiết là đề xuất, cần xác nhận t
 | R-07 | SharePoint là tích hợp có điều kiện, phụ thuộc xác minh và phê duyệt của IT về Microsoft Graph, quyền site/library và kết nối server. Local-only phải hoạt động độc lập. |
 | R-08 | Repo GitHub công khai chỉ chứa nội dung đã rà soát. Word nội bộ, video xưởng, ảnh nhân viên, dữ liệu sản xuất, URL SharePoint nội bộ và thông tin xác thực ở ngoài repo; không gửi video/operator lên AI cloud khi chưa được phê duyệt. |
 | R-09 | Theo policy công ty do chủ dự án xác nhận ngày 2026-11-21, user không thể tải phần mềm từ Internet hoặc chạy file `.exe`. Không né policy. Ưu tiên API đã có trong browser/Windows; mọi thư viện được ship cùng web app và mọi runtime do IT triển khai vẫn cần được công ty cho phép. |
+| R-10 | AI nhận diện thao tác trên video là mục tiêu sản phẩm. AI chỉ tạo gợi ý có nhãn, khoảng thời gian theo PTS/frame gốc, độ tin cậy và phiên bản model để IE xác nhận/sửa/loại; không tự phê duyệt Time Study. Suy luận phải chạy cục bộ bằng model/runtime được IT duyệt; không gửi video/frame/operator lên server LAN hoặc AI cloud. Danh mục nhãn, dữ liệu tham chiếu và ngưỡng nghiệm thu còn mở tại D-11. |
 
 Nếu IT cho phép dùng NAS, NAS chỉ là lựa chọn kho file/backup được xét sau; không thay thế ổ local cho SQLite và vùng xử lý video đang hoạt động.
 
@@ -74,7 +75,7 @@ Các bất biến bắt buộc:
 
 Ngoại lệ phải thể hiện rõ: file hỏng/codec không hỗ trợ; user không cấp được file local hoặc file bị di chuyển/thay đổi; thiếu dung lượng workstation; local media processor lỗi/khởi động lại; PTS thiếu/trùng/không đáng tin cậy; video che khuất thao tác hoặc cắt giữa cycle; annotation ngoài cycle; End không lớn hơn Start; overlap chưa có quy tắc; không có cycle hợp lệ; mất quyền hoặc sửa đồng thời. Không âm thầm sửa dữ liệu hay tự coi các trường hợp này là đạt nghiệm thu.
 
-Luồng POC cụ thể, khôi phục Start/End và xử lý ảnh chưa xác minh được ghi trong [kiến trúc](ARCHITECTURE.md). Chủ dự án đã duyệt Gate 1 cho phạm vi POC; D-02/D-05 chưa chốt. POC lưu mốc bằng manifest local, không yêu cầu SQLite hoặc SharePoint; OpenAPI chi tiết chỉ ở local.
+Luồng POC cụ thể, khôi phục Start/End và các giới hạn timestamp được ghi trong [kiến trúc](ARCHITECTURE.md). Chủ dự án đã duyệt Gate 1 cho phạm vi POC; D-02/D-05 chưa chốt. POC lưu mốc bằng manifest local, không yêu cầu SQLite hoặc SharePoint; OpenAPI chi tiết chỉ ở local.
 
 ## 5. Phạm vi theo phase và gate
 
@@ -82,13 +83,13 @@ Luồng POC cụ thể, khôi phục Start/End và xử lý ảnh chưa xác min
 | --- | --- | --- |
 | Phase 0 — POC | P0-01 đến P0-10: làm rõ domain/kiến trúc, môi trường, schema, thử timestamp/video, engine cơ bản, benchmark và feasibility storage/sync. Gói lập trình đầu tiên là P0-05 + P0-06 + phần P0-08. | Gate 1: chủ dự án duyệt nền tảng và storage constraints. Gate 2: benchmark video thực tế và quyết định go/no-go theo D-02/D-05; local-only được phép nếu D-03 không đạt. |
 | Phase 1 — Manual Time Study MVP | P1-01 đến P1-10: video source library local, master/template version, session/revision, annotation, cycle API, analytics, Excel, RBAC/approval/audit, E2E và pilot LAN. | Gate 3: vertical slice Chọn video local → Annotate → Calculate → Save → Excel và pilot/UAT đạt các tiêu chí bên dưới; media bytes không gửi lên server. |
-| Phase 2 — AI hỗ trợ | Sau MVP ổn định: manual labels → motion/ROI rules → hand pose/object detection → temporal segmentation → active learning; IE xác nhận mọi gợi ý. | Phê duyệt dữ liệu, tập test và metrics AI; đánh giá lợi ích theo thời gian IE chỉnh sửa. |
+| Phase 2 — AI nhận diện thao tác | Phân tích chuỗi frame video cục bộ để đề xuất work element và ranh giới thời gian; gồm nhãn, dữ liệu tham chiếu, runtime/model được IT duyệt, temporal segmentation, đánh giá độc lập và giao diện review. | Gate: P0 source-frame/PTS mapping đủ tin cậy; D-06/D-10/D-11 được giải quyết; video/dữ liệu và runtime/model được IT duyệt. Acceptance: AC-AI-01–04 đạt theo metrics/thresholds được duyệt tại D-11. Feasibility có thể chạy riêng trước MVP; chỉ tích hợp số liệu Time Study sau khi timestamp và workflow review sẵn sàng. |
 | Phase 3 — SOP | Keyframe đã rà soát, SOP Word/PDF, revision và approval, truy xuất về study/video. | Duyệt nội dung và định dạng SOP trước dùng chính thức. |
 | Phase 4 — Tích hợp và mở rộng | Line Balancing API; Pareto NVA, before/after; SharePoint production nếu IT duyệt, dung lượng và vận hành theo nhu cầu thực. | Contract, quyền dữ liệu và kiểm thử tích hợp được chấp thuận. |
 
 Phase 2–4 là lộ trình đề xuất; thứ tự có thể đổi khi được giao riêng. SharePoint feasibility ở Phase 0 và tích hợp có thể được giao sớm hơn nếu IT chấp thuận; không phải điều kiện bắt buộc để Manual MVP local-only hoạt động.
 
-Phạm vi gói hiện được giao là lập trình và kiểm chứng kỹ thuật POC tại workspace local; SQLite nghiệp vụ, SharePoint, Excel, AI và triển khai MVP/pilot để sau. Browser preview local cho phép thêm breakpoint cả khi video đang chạy, xem timeline phân đoạn màu, click timeline để tua và click nhãn breakpoint để xóa; Start/End và duration vẫn là browser-time draft. Có thể mở ảnh cục bộ hoặc chụp frame đang hiển thị, chỉnh độ sáng/tương phản/bão hòa/thang xám bằng Canvas và tải PNG đã xử lý về máy; ảnh/video gốc không bị thay đổi hoặc gửi lên server. Các thao tác preview chưa xác minh frame/PTS gốc và không cắt thành file video riêng. Khoảng cách breakpoint dưới 80 ms bị từ chối theo hành vi tham khảo từ 15.CIOS, chưa phải ngưỡng đã duyệt cho độ chính xác hoặc video xưởng. Không dùng kết quả này làm Time Study chính thức hoặc coi AC-POC-02/03 đã đạt. GitHub chỉ dùng cho 5 file Markdown root; xem trạng thái thực tế trong [PROGRESS.md](PROGRESS.md).
+Phạm vi POC hiện tại là feasibility preview local; AI nhận diện thao tác là mục tiêu sản phẩm được chủ dự án nêu, nhưng chưa có model/runtime hoặc dữ liệu nhãn để chạy suy luận. Preview cho phép breakpoint khi video chạy, timeline phân đoạn màu, tua, đặt Start/End nháp và xuất/nhập JSON; các mốc dùng browser time, không phải frame/PTS gốc đã xác minh. Không có chức năng chỉnh sửa ảnh; video gốc không bị thay đổi hoặc gửi lên server. Khoảng cách breakpoint dưới 80 ms chỉ mô phỏng hành vi tham khảo từ 15.CIOS, chưa phải ngưỡng sai số được duyệt. Không dùng kết quả này làm Time Study chính thức hoặc coi AC-POC-02/03 đã đạt. GitHub chỉ dùng cho 5 file Markdown root; xem trạng thái thực tế trong [PROGRESS.md](PROGRESS.md).
 
 ## 6. Tiêu chí nghiệm thu
 
@@ -114,6 +115,16 @@ Phạm vi gói hiện được giao là lập trình và kiểm chứng kỹ thu
 | AC-MVP-06 | Pilot có persistent local storage, health/log, phục hồi job, backup SQLite bằng backup API và manifest/metadata theo chính sách từng máy; restore thử và UAT. Không backup video gốc/proxy lên server; chỉ tiêu tải/retention do D-06/D-07 quyết định. |
 | AC-MVP-07 | Chạy được local-only khi SharePoint không khả dụng; video gốc/proxy vẫn ở workstation. Nếu tích hợp metadata được giao thì phải kiểm tra quyền, retry, verify, conflict và retention; không dọn local cache trước khi được phép. |
 
+
+### AI nhận diện thao tác — tiêu chí đề xuất, chưa duyệt
+
+| Mã | Tiêu chí |
+| --- | --- |
+| AC-AI-01 | Video/frame được xử lý cục bộ bằng model/runtime đã được IT duyệt; kiểm tra network chứng minh không gửi bytes video/frame hoặc dữ liệu operator lên server LAN/AI cloud. |
+| AC-AI-02 | Mỗi gợi ý ghi nhãn, Start/End gắn với frame ref và timestamp PTS nguồn đã xác minh, confidence, model/version; kết quả không chắc chắn được đưa sang review, không tự ghi thành số liệu đã duyệt. |
+| AC-AI-03 | Đánh giá trên holdout tách theo video/session, có ground truth IE độc lập; báo macro-F1 theo lớp, segment-F1, sai lệch Start/End, độ phủ, latency và thời gian IE chỉnh sửa. Ngưỡng đạt và confidence threshold do chủ dự án duyệt tại D-11; D-02/D-05 vẫn là quyết định riêng cho độ chính xác video xưởng. |
+| AC-AI-04 | IE có thể xem, sửa, chấp nhận hoặc loại từng gợi ý; lưu lineage của nguồn, dataset, model/version và quyết định người dùng. |
+
 Các tiêu chí trên là tiêu chí để kiểm chứng trong tương lai, không phải kết quả test đã chạy. Trạng thái thực tế theo [PROGRESS.md](PROGRESS.md).
 
 ## 7. Sổ quyết định còn mở
@@ -132,3 +143,4 @@ Chỉ chủ dự án/người được ủy quyền xác nhận quyết định 
 | D-08 | Cách chia element, rating factor, allowance, công thức Normal/Standard Time và thẩm quyền duyệt? | MVP ưu tiên observed time; chỉ bật Normal/Standard Time khi đủ quy tắc được duyệt. | P0-07, P1-02/06/07. |
 | D-09 | Độ lệch chuẩn mẫu hay tổng thể; nhóm occurrence lặp/thiếu; tập quan sát và cách làm tròn báo cáo? | Độ lệch chuẩn mẫu, n<2 không có giá trị; cộng occurrence theo element trong mỗi cycle và giữ chi tiết. Cần IE duyệt trước khi áp dụng. | P0-07, P1-05/06/07. |
 | D-10 | Runtime nào đọc video local, tạo proxy/index/ảnh exact-frame và khôi phục cùng nguồn mà không upload video lên server? Cách lưu local artifact và quyền user mở lại file sau khi đóng browser? | Ngày 2026-11-21, theo yêu cầu chủ dự án, chọn browser-native File API + `<video>` làm thử nghiệm đầu vì không cần tải/cài media engine. Preview mở file bằng Blob URL; bản standalone có breakpoint/đoạn nháp theo browser time và manifest JSON, nhưng không có source PTS/index, step frame, ảnh xác minh, proxy, rotation được kiểm chứng hoặc nhận dạng nguồn bằng checksum. Ngưỡng 80 ms chỉ mô phỏng hành vi breakpoint tham khảo, không phải D-02. Đây chưa phải quyết định runtime cuối; nếu browser không đủ, thử WebCodecs + demuxer JavaScript chỉ sau IT/security review; Media Foundation/PyAV/FFmpeg/GStreamer chỉ khi IT triển khai/phê duyệt. Giữ original tại đường dẫn user và không gửi file/path lên API. D-10 vẫn mở đến khi AC-POC được kiểm tra. | P0-02/03/05/06/08, P1-01/03/09/10; thay đổi endpoint/OpenAPI POC. |
+| D-11 | Cần nhận diện những work element nào; bộ video/annotation nào được phép dùng; model/runtime và tài nguyên cục bộ nào được IT duyệt; chia train/validation/holdout ra sao; metric, confidence threshold và ngưỡng chấp nhận nào áp dụng? | Đề xuất: bắt đầu với nhãn do IE định nghĩa; chia tập theo video/session; AI chỉ đưa gợi ý; đo macro-F1, segment-F1, boundary MAE, độ phủ, latency và thời gian chỉnh sửa. Không chọn model, ngưỡng hoặc dùng dữ liệu nhạy cảm trước khi được duyệt. | FUT-AI-A–E, R-10, AC-AI-01–04; D-06/D-10; không đóng D-02/D-05. |

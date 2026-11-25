@@ -29,6 +29,7 @@ Repo công khai. Trước khi sửa, đọc yêu cầu người dùng hiện t�
 - Annotation dùng microsecond nguyên và frame/boundary refs của source; VFR không dùng `frame/FPS` hoặc proxy time làm chuẩn.
 - Bảo vệ `start < end`, containment, template version, occurrence lặp, exclusion reason, immutable approved revision, audit và optimistic concurrency. Đọc kỹ quy tắc timestamp và terminal boundary trong kiến trúc trước sửa player hoặc duration.
 - Không cộng trùng parallel work, không suy Standard Time từ cycle nhanh nhất. AI chỉ gợi ý, IE xác nhận số liệu chính thức.
+- Với AI nhận diện thao tác, chỉ dùng model/runtime/dependency và video được IT/chủ dự án cho phép; xử lý frame/video trên workstation, không gửi media hoặc operator data lên LAN API/AI cloud. Gợi ý phải gắn source frame/PTS và version model để IE xem/sửa/chấp nhận/từ chối; không tự phê duyệt hoặc giả lập kết quả suy luận khi thiếu model.
 - SharePoint phụ thuộc D-03 và phê duyệt IT. Local-only phải hoạt động; không đồng bộ video gốc/proxy lên SharePoint nếu chưa có phê duyệt riêng, và không chuyển live SQLite lên SharePoint hoặc NAS.
 
 ## 4. Cập nhật tài liệu trong mọi lần làm việc

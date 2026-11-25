@@ -17,9 +17,9 @@ Liên kết: [yêu cầu](PROJECT_REQUIREMENT.md), [kiến trúc](ARCHITECTURE.m
 | P0-04 đến P0-08 | Browser feasibility slice local mở/phát video, breakpoint trong lúc phát, timeline màu, Start/End draft; thêm Canvas filter cho ảnh local hoặc frame browser và xuất PNG. Frame-step source, raw PTS, proxy/index và phép đo POC theo contract chưa làm; backend còn legacy upload endpoints, không expose. Chưa kiểm tra tương tác browser/video/ảnh hoặc benchmark; chưa có SQLite schema/migration hoặc P0-07. |
 | P0-09 | Chưa xác minh với IT, chưa thử Graph; SharePoint còn có điều kiện, local-only là hướng lõi. |
 | P0-10 | Mới có nguyên tắc sync/recovery trong kiến trúc, chưa thiết kế chi tiết được nghiệm thu hoặc triển khai recovery/sync. |
-| Phase 0 POC | **Browser-only preview có playback, breakpoint live/timeline và image filters Canvas; HTTP route đã kiểm tra nhưng tương tác browser/video/ảnh chưa xác nhận. Exact PTS, frame-step, phép đo chính thức, persistence theo contract và proxy chưa làm; backend legacy upload còn tồn tại. Không dùng video xưởng; chưa benchmark hoặc go/no-go.** |
+| Phase 0 POC | Browser-only local preview có playback, breakpoint/timeline và Start/End nháp theo browser time; hiện có vùng trạng thái AI nhưng không chạy inference. Source PTS, frame-step, proxy, persistence theo contract và P0-08 chưa được nghiệm thu; backend legacy upload còn tồn tại. Không dùng video xưởng; D-02/D-05 và go/no-go vẫn mở. |
 | Phase 1 MVP | **Chưa bắt đầu lập trình, chưa test ứng dụng, chưa pilot LAN hoặc UAT.** |
-| Phase 2–4 | AI, SOP, tích hợp và phân tích nâng cao chỉ là lộ trình đề xuất, chưa được triển khai. |
+| Phase 2–4 | AI nhận diện thao tác là mục tiêu sản phẩm, nhưng chưa có model/runtime/nhãn/dữ liệu được duyệt và chưa triển khai; SOP, tích hợp và phân tích nâng cao vẫn là lộ trình. |
 
 Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy ra POC/MVP đã hoàn tất. Ngày/SHA và kết quả kiểm tra GitHub sau push được báo trong bàn giao; nội dung nhật ký không ghi trước một kết quả push chưa xảy ra.
 
@@ -28,6 +28,15 @@ Không dùng trạng thái hoàn tất của lần soạn tài liệu để suy 
 Sau mỗi yêu cầu đã thực hiện, thêm một mục trong cùng commit hoặc PR với thay đổi, kể cả làm một phần hoặc bị vướng. Giữ các mục cũ. Mỗi mục có ngày, yêu cầu/mã task, trạng thái, thay đổi chính, kết quả kiểm chứng và việc còn mở. Cập nhật bảng hiện trạng khi có tiến triển; lịch sử cũ không bị xóa. Khi đổi nghiệp vụ/thiết kế/kế hoạch/quy tắc agent, cập nhật mọi file liên quan theo [AGENTS.md](AGENTS.md).
 
 ## Nhật ký
+
+### 2026-11-25 — Chuyển yêu cầu từ chỉnh sửa ảnh sang AI nhận diện thao tác
+
+- **Yêu cầu / phạm vi:** chủ dự án làm rõ mục tiêu là phân tích video để nhận diện thao tác/work element, không phải chỉnh sửa pixel/ảnh. Chỉ sửa preview local và tài liệu liên quan; không đổi P0 Gate, không triển khai SQLite/SharePoint hay gửi video ra ngoài workstation.
+- **Trạng thái:** phần hiểu sai (Canvas brightness/contrast/saturation/grayscale, chụp/xuất PNG) đã được gỡ khỏi preview hiện tại. Mục tiêu AI được ghi vào yêu cầu/kiến trúc/plan; chưa có inference thực tế vì thiếu model/runtime, taxonomy nhãn và dữ liệu ground truth được IT/chủ dự án cho phép.
+- **Thay đổi chính:** preview local có vùng trạng thái AI nhận diện thao tác, ghi rõ chưa khả dụng và nêu điều kiện để bật; không tạo dự đoán giả. Trang preview được khôi phục sau sự cố thao tác ghi file trong lượt này; luồng playback, breakpoint/timeline, Start/End và JSON nháp được dựng lại nhưng chưa được đối chiếu chức năng với bản trước. Cập nhật PROJECT_REQUIREMENT.md (R-10, D-11 và AC-AI-01–04 đề xuất), ARCHITECTURE.md (xử lý cục bộ, timestamp PTS, human review, metrics), IMPLEMENTATION_PLAN.md (FUT-AI-A–E) và AGENTS.md (guardrails cho AI local/human review); giữ D-02/D-05/go-no-go mở. README_POC_LOCAL.md và code HTML chỉ ở workspace local.
+- **Kiểm chứng thực tế:** inventory workspace cho thấy frontend chỉ khai báo React/TypeScript; requirements backend chỉ có FastAPI/Uvicorn/multipart; không tìm thấy model artifact .onnx/.tflite/.pt/.pth/.task/.gguf/.safetensors hoặc runtime AI được khai báo. Rà soát tĩnh HTML: 34 tham chiếu getElementById đều có phần tử tương ứng; không còn handler lọc/trích/xuất ảnh, fetch/XHR hoặc script ngoài. Đối chiếu D-11 trong requirement/architecture/plan/progress/agent guidance; git diff --check với cr-at-eol không báo whitespace. Chưa mở browser/video, chưa chạy inference, chưa benchmark; không cài/tải package hoặc chạy executable bị policy chặn.
+- **Việc còn mở:** cần chủ dự án/IE chốt action taxonomy và định nghĩa boundary; cần video/annotation tham chiếu được phép, holdout theo video, cùng metric/threshold/confidence được duyệt. IT cần xác nhận model/runtime/dependency/license và tài nguyên workstation; P0 source PTS/frame mapping chưa đạt. D-11 mới đề xuất; D-02/D-05 và quyết định go/no-go video xưởng vẫn mở. Sự cố ghi file và việc dựng lại preview local chưa được browser-test, cần review trước khi dùng tiếp.
+- **GitHub:** chỉ các file Markdown root trong danh sách cho phép được đưa vào PR #1; code và README giữ local.
 
 ### 2026-11-24 — Thêm xử lý ảnh cục bộ bằng Canvas
 
